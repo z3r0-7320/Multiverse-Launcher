@@ -1,0 +1,135 @@
+
+.root {
+    -fx-background-color: #333333;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.viewport {
+    -fx-background-color: transparent;
+}
+
+.text-area {
+    -fx-text-fill: #ffffff;
+    -fx-background-insets: 0;
+    -fx-background-color: #333333;
+}
+
+.text-area .content {
+    -fx-background-color: #333333;
+    -fx-cursor: pointer;
+
+}
+
+.text-area:focused .content {
+    -fx-background-color: #333333;
+}
+
+.scroll-pane:focused {
+    -fx-border-width: 0;
+}
+
+.button {
+    -fx-background-color: #007acc;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.combo-box {
+    -fx-background-color: #4c4c4c;
+}
+
+.list-view {
+    -fx-background-color: #4c4c4c;
+    -fx-background-radius: 2;
+}
+
+.list-cell {
+    -fx-background-color: #4c4c4c;
+    -fx-text-fill: white;
+    -fx-background-radius: 2;
+}
+
+.combo-box .list-view {
+    -fx-text-fill: white;
+}
+
+.combo-box .list-view .list-cell:focused {
+    -fx-background-color: #007acc;
+}
+
+.combo-box .list-view .list-cell:hover {
+    -fx-background-color: #007acc;
+}
+
+.scroll-bar:vertical {
+    -fx-background-color: #4c4c4c;
+}
+
+.thumb {
+    -fx-background-color: #333333;
+}
+
+.increase-button, .decrease-button {
+    -fx-shape: " ";
+}
+
+
+.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #ffffff;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.tab-pane
+{
+    -fx-tab-min-width:90px;
+}
+
+.tab{
+    -fx-background-insets: 0 1 0 1,0,0;
+}
+.tab-pane .tab
+{
+    -fx-background-color: #4c4c4c;
+}
+
+.tab-pane .tab:selected
+{
+    -fx-background-color: #007acc;
+}
+
+.tab .tab-label {
+    -fx-alignment: CENTER;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.tab:selected .tab-label {
+    -fx-alignment: CENTER;
+}
+
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+    -fx-border-width: 0;
+}
+
+.text-field {
+    -fx-text-fill: #ffffff;
+    -fx-background-insets: 0;
+    -fx-background-color: #4c4c4c;
+}
+
+.text-field .content {
+    -fx-background-color: #4c4c4c;
+
+}
+
+.text-field:focused .content {
+    -fx-background-color: #4c4c4c;
+}
