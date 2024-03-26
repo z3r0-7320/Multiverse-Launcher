@@ -2,15 +2,9 @@ package multiverse;
 
 public class ProgramState {
 
-    public enum ProgramStateEnum {
-        CREATE_PROFILE,
-        EDIT_PROFILE,
-        OTHER
-    }
-
     private static ProgramStateEnum currentStatus;
 
-    static  {
+    static {
         ProgramState.currentStatus = ProgramStateEnum.OTHER;
     }
 
@@ -20,5 +14,11 @@ public class ProgramState {
 
     public static void updateStatus(ProgramStateEnum newStatus) {
         ProgramState.currentStatus = newStatus;
+    }
+
+    public enum ProgramStateEnum {
+        CREATE_PROFILE,
+        EDIT_PROFILE,
+        OTHER
     }
 }

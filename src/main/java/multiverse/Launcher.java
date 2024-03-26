@@ -148,12 +148,12 @@ public class Launcher {
             if (launchTarget.exists() && ((profile.useQuilt() && new File(Statics.QUILT_DIRECTORY, profile.getQuiltLoaderVersion() + "/" + Statics.QUILT_LOADER_JAR_NAME).exists()) || !profile.useQuilt()))
                 try {
                     Process process = profile.useQuilt() ?
-                            new ProcessBuilder("java", "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getPath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
-                                    "-Dloader.modsDir=" + Statics.PROFILES_DIRECTORY.getPath().replace('\\', '/') + "/" + profile.getName() + "/quilt-mods",
-                                    "-Duser.profileDir=" + Statics.PROFILES_DIRECTORY.getPath().replace('\\', '/') + "/" + profile.getName(),
+                            new ProcessBuilder("java", "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
+                                    "-Dloader.modsDir=" + Statics.PROFILES_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getName() + "/quilt-mods",
+                                    "-Duser.dir=" + Statics.PROFILES_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getName(),
                                     "-Dloader.skipMcProvider=true",
-                                    "-Dloader.addMods=" + Statics.QUILT_DIRECTORY.getPath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar",
-                                    "-classpath", Statics.QUILT_DIRECTORY.getPath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getPath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
+                                    "-Dloader.addMods=" + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar",
+                                    "-classpath", Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
                                     "org.quiltmc.loader.impl.launch.knot.KnotClient").start() :
                             new ProcessBuilder("java", "-jar", launchTarget.getAbsolutePath()).start();
 
@@ -180,7 +180,7 @@ public class Launcher {
                         String c = String.valueOf((char) b);
                         sb.append(c);
                         if (c.equals("\n")) {
-                            if (lineCounter > 200) {
+                            if (lineCounter > 500) {
                                 sb.delete(0, sb.indexOf("\n") + 1);
                             } else {
                                 lineCounter++;

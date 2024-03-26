@@ -26,12 +26,24 @@ public class Profile {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getVersion() {
         return version;
     }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     public String getGameDir() {
         return gameDir;
+    }
+
+    public void setGameDir(String gameDir) {
+        this.gameDir = gameDir;
     }
 
     public boolean useQuilt() {
@@ -42,24 +54,12 @@ public class Profile {
         return quiltLoaderVersion;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public void setGameDir(String gameDir) {
-        this.gameDir = gameDir;
+    public void setQuiltLoaderVersion(String quiltLoaderVersion) {
+        this.quiltLoaderVersion = quiltLoaderVersion;
     }
 
     public void setUseQuilt(boolean useQuilt) {
         this.useQuilt = useQuilt;
-    }
-
-    public void setQuiltLoaderVersion(String quiltLoaderVersion) {
-        this.quiltLoaderVersion = quiltLoaderVersion;
     }
 
     @Override

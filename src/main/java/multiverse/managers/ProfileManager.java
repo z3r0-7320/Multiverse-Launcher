@@ -41,7 +41,8 @@ public class ProfileManager {
     public static Profile editProfile(Profile profile, String name, String version, boolean useQuilt, String quiltLoaderVersion) {
         if (profile == null) return null;
         File ProfileDir = new File(Statics.PROFILES_DIRECTORY, profile.getName());
-        if (!profile.getName().equals(name) && !ProfileDir.renameTo(new File(Statics.PROFILES_DIRECTORY, name))) return null;
+        if (!profile.getName().equals(name) && !ProfileDir.renameTo(new File(Statics.PROFILES_DIRECTORY, name)))
+            return null;
         profile.setName(name);
         profile.setVersion(version);
         profile.setUseQuilt(useQuilt);

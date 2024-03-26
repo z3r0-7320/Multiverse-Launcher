@@ -4,6 +4,10 @@
 .idea
 
 /multiverse
+/.cache
+/config
+/logs
+/worlds
 
 # Ignore Gradle GUI config
 gradle-app.setting

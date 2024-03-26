@@ -56,7 +56,8 @@ public class BuildManager {
                             found = true;
                             break;
                         }
-                    } if (!found) {
+                    }
+                    if (!found) {
                         builds.add(build);
                     }
                 }

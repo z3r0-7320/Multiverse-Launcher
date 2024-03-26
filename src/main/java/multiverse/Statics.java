@@ -11,8 +11,16 @@ public final class Statics {
     public static final File BASE_DIRECTORY = new File("./multiverse");
     public static final File VERSIONS_DIRECTORY = new File(BASE_DIRECTORY, "versions");
     public static final File PROFILES_DIRECTORY = new File(BASE_DIRECTORY, "profiles");
-    public static final File QUILT_DIRECTORY = new File(BASE_DIRECTORY,"quilt");
+    public static final File QUILT_DIRECTORY = new File(BASE_DIRECTORY, "quilt");
 
     public static final String COSMIC_REACH_JAR_NAME = "cosmic-reach.jar";
     public static final String QUILT_LOADER_JAR_NAME = "cosmic-quilt.jar";
+
+    public static final String QUILT_LOADER_VERSIONS = "https://jitpack.io/api/builds/org.codeberg.CRModders/cosmic-quilt";
+    public static final String QUILT_LOADER_DOWNLOAD = "https://jitpack.io/org/codeberg/CRModders/cosmic-quilt/%s/%s";
+    public static final String[] MAVEN_REPOSITORIES = {
+            "https://maven.quiltmc.org/repository/release/",
+            "https://maven.fabricmc.net/",
+            "https://repo.spongepowered.org/maven/",
+    };
 }

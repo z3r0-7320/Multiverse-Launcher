@@ -29,8 +29,8 @@ public class ListSorter {
 
     public static int compare(QuiltRelease quiltRelease, QuiltRelease quiltRelease1) {
         // Split version numbers into parts
-        String[] parts1 = quiltRelease.getTagName().split("\\.");
-        String[] parts2 = quiltRelease1.getTagName().split("\\.");
+        String[] parts1 = quiltRelease.getVersionNumber().split("\\.");
+        String[] parts2 = quiltRelease1.getVersionNumber().split("\\.");
 
         // Compare each part
         for (int i = 0; i < Math.max(parts1.length, parts2.length); i++) {
