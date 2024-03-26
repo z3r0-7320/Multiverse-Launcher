@@ -147,16 +147,18 @@ public class Launcher {
 
             if (launchTarget.exists() && ((profile.useQuilt() && new File(Statics.QUILT_DIRECTORY, profile.getQuiltLoaderVersion() + "/" + Statics.QUILT_LOADER_JAR_NAME).exists()) || !profile.useQuilt()))
                 try {
-                    Process process = profile.useQuilt() ?
+                    ProcessBuilder processBuilder = profile.useQuilt() ?
                             new ProcessBuilder("java", "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
                                     "-Dloader.modsDir=" + Statics.PROFILES_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getName() + "/quilt-mods",
-                                    "-Duser.dir=" + Statics.PROFILES_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getName(),
                                     "-Dloader.skipMcProvider=true",
-                                    "-Dloader.addMods=" + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar",
+                                    //"-Dloader.addMods=" + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar",
                                     "-classpath", Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
-                                    "org.quiltmc.loader.impl.launch.knot.KnotClient").start() :
-                            new ProcessBuilder("java", "-jar", launchTarget.getAbsolutePath()).start();
+                                    "org.quiltmc.loader.impl.launch.knot.KnotClient") :
+                            new ProcessBuilder("java", "-jar", launchTarget.getAbsolutePath());
 
+                    processBuilder.directory(new File(Statics.PROFILES_DIRECTORY, profile.getName()));
+
+                    Process process = processBuilder.start();
 
                     launchButton.setDisable(true);
                     lineCounter = 0;
