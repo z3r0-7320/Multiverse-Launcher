@@ -82,7 +82,6 @@ public class QuiltManager {
         } catch (SAXException | IOException | ParserConfigurationException e) {
             return false;
         }
-
         return true;
     }
 

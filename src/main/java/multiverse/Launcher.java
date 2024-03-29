@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -13,6 +14,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import multiverse.json.Builds;
 import multiverse.json.Profile;
+import multiverse.json.QuiltRelease;
 import multiverse.managers.BuildManager;
 import multiverse.managers.ProfileManager;
 import multiverse.managers.SettingsManager;
@@ -24,12 +26,15 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static multiverse.Statics.GSON;
 
-public class Launcher {
+public class Launcher implements Initializable {
 
     public Button launchButton;
     public TextArea consoleTextArea;
@@ -41,24 +46,25 @@ public class Launcher {
     public TextArea changelogTextArea;
     private int lineCounter;
 
-    public Launcher() {
-        try {
-            File dir = Statics.VERSIONS_DIRECTORY;
-            dir.mkdir();
-            Platform.runLater(() -> {
-                if (ProfileManager.getProfiles().isEmpty()) {
-                    SettingsManager.updateSettings(ProfileManager.createProfile("Latest", "latest", false, ""));
-                }
-                for (Profile profile : ProfileManager.getProfiles()) {
-                    profileComboBox.getItems().add(profile);
-                }
-                Profile lastProfile = ProfileManager.getProfile(SettingsManager.getLastProfile());
-                profileComboBox.setValue(lastProfile == null ? ProfileManager.getProfiles().get(0) : lastProfile);
-                changelogTextArea.setText(String.join("\n\n", GSON.fromJson(getChangeLog(), String[].class)));
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        new Thread(() -> {
+            try {
+                Platform.runLater(() -> {
+                    if (ProfileManager.getProfiles().isEmpty()) {
+                        SettingsManager.updateSettings(ProfileManager.createProfile("Latest", "latest", false, ""));
+                    }
+                    for (Profile profile : ProfileManager.getProfiles()) {
+                        profileComboBox.getItems().add(profile);
+                    }
+                    Profile lastProfile = ProfileManager.getProfile(SettingsManager.getLastProfile());
+                    profileComboBox.setValue(lastProfile == null ? ProfileManager.getProfiles().get(0) : lastProfile);
+                    changelogTextArea.setText(String.join("\n\n", GSON.fromJson(getChangeLog(), String[].class)));
+                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
     private static String getChangeLog() {
@@ -151,6 +157,8 @@ public class Launcher {
                             new ProcessBuilder("java", "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
                                     "-Dloader.modsDir=" + Statics.PROFILES_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getName() + "/quilt-mods",
                                     "-Dloader.skipMcProvider=true",
+                                    "-Dcosmicquilt.colorizeLogs=false",
+                                    "-Dcosmicquilt.cacheLogs=false",
                                     //"-Dloader.addMods=" + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar",
                                     "-classpath", Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
                                     "org.quiltmc.loader.impl.launch.knot.KnotClient") :
@@ -171,7 +179,6 @@ public class Launcher {
             else Platform.runLater(() -> consoleTextArea.setText("Failed to find version " + finalVersion + "\n"));
         }).start();
     }
-
     private void writeToWindow(final InputStream src) {
         new Thread(() -> {
             try {
@@ -231,17 +238,17 @@ public class Launcher {
     public void onProfileAddButtonClick(ActionEvent actionEvent) throws IOException {
         disableUI(true);
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.CREATE_PROFILE);
-        Stage popupStage = createPopupStage("Add Profile");
+        Stage popupStage = createPopupStage("Add Profile", "add_profil.fxml");
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
         popupStage.setOnHiding(event -> Platform.runLater(this::refreshUI));
         popupStage.setOnCloseRequest(event -> Platform.runLater(this::refreshUI));
         popupStage.show();
     }
 
-    private Stage createPopupStage(String title) throws IOException {
+    private Stage createPopupStage(String title, String name) throws IOException {
         Stage popupStage = new Stage();
         popupStage.setTitle(title);
-        FXMLLoader fxmlLoader = new FXMLLoader(MultiverseLauncher.class.getResource("add_profil.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(MultiverseLauncher.class.getResource(name));
         popupStage.setScene(new Scene(fxmlLoader.load()));
         popupStage.setResizable(false);
         popupStage.initModality(Modality.APPLICATION_MODAL);
@@ -270,25 +277,39 @@ public class Launcher {
         SettingsManager.updateSettings(profileComboBox.getValue());
     }
 
-    public void onProfileDeleteButtonClick(ActionEvent actionEvent) {
-        Profile profile = profileComboBox.getValue();
-        if (profile != null && ProfileManager.deleteProfile(profile.getName())) {
-            profileComboBox.getItems().remove(profile);
-            if (profileComboBox.getItems().isEmpty()) {
-                profileComboBox.setValue(null);
-                SettingsManager.updateSettings(null);
-            } else {
-                profileComboBox.setValue(ProfileManager.getProfiles().get(0));
-                SettingsManager.updateSettings(ProfileManager.getProfiles().get(0));
-            }
+    public void onProfileDeleteButtonClick(ActionEvent actionEvent) throws IOException {
+        disableUI(true);
+        ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
+        Stage popupStage = new Stage();
+        popupStage.setTitle("Delete Profile");
+        FXMLLoader fxmlLoader = new FXMLLoader(MultiverseLauncher.class.getResource("delete.fxml"));
+        fxmlLoader.setController(new Delete(() -> Platform.runLater(() -> {
+            Profile profile = profileComboBox.getValue();
+            if (profile != null && ProfileManager.deleteProfile(profile.getName())) {
+                profileComboBox.getItems().remove(profile);
+                if (profileComboBox.getItems().isEmpty()) {
+                    profileComboBox.setValue(null);
+                    SettingsManager.updateSettings(null);
+                } else {
+                    profileComboBox.setValue(ProfileManager.getProfiles().get(0));
+                    SettingsManager.updateSettings(ProfileManager.getProfiles().get(0));
+                }
 
-        }
+            }
+        }), null));
+        popupStage.setScene(new Scene(fxmlLoader.load()));
+        popupStage.setResizable(false);
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
+        popupStage.setOnHiding(event -> Platform.runLater(this::refreshUI));
+        popupStage.setOnCloseRequest(event -> Platform.runLater(this::refreshUI));
+        popupStage.show();
     }
 
     public void onProfileEditButtonClick(ActionEvent actionEvent) throws IOException {
         disableUI(true);
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
-        Stage popupStage = createPopupStage("Edit Profile");
+        Stage popupStage = createPopupStage("Edit Profile", "add_profil.fxml");
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
         popupStage.setOnHiding(event -> Platform.runLater(this::refreshUI));
         popupStage.setOnCloseRequest(event -> Platform.runLater(this::refreshUI));

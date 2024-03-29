@@ -2,6 +2,7 @@ package multiverse;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import multiverse.json.Builds;
@@ -21,12 +22,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static multiverse.managers.BuildManager.builds;
 
-public class AddProfil {
+public class AddProfil implements Initializable {
     public TextField profileNameField;
     public ComboBox<Builds.Build> versionComboBox;
     public ComboBox<QuiltRelease> modSupportComboBox;
@@ -39,12 +41,15 @@ public class AddProfil {
     public boolean isEdit;
     public Profile profile;
 
-    public AddProfil() {
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
         isEdit = ProgramState.getCurrentStatus() == ProgramState.ProgramStateEnum.EDIT_PROFILE;
         profile = isEdit ? ProfileManager.getProfile(SettingsManager.getLastProfile()) : null;
 
-        setupProfileNameField(profile);
-        setupComboBoxes(profile);
+        new Thread(() ->{
+            setupProfileNameField(profile);
+            setupComboBoxes(profile);
+        }).start();
     }
 
     private static boolean unzip(String zipFilePath, File destDir) {
