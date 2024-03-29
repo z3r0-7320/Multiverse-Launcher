@@ -1,0 +1,15 @@
+.close-button {
+    -fx-background-color: red;
+}
+
+.maximize-button {
+    -fx-background-color: green;
+}
+
+.minimize-button {
+    -fx-background-color: yellow;
+}
+
+.close-button .graphic, .maximize-button .graphic, .minimize-button .graphic {
+    -fx-fill: white;
+}

@@ -16,10 +16,6 @@ public class MultiverseLauncher extends Application {
         Statics.QUILT_DIRECTORY.mkdirs();
     }
 
-    public static void main(String[] args) {
-        launch();
-    }
-
     @Override
     public void start(Stage stage) throws IOException {
         stage.setMinWidth(1024);

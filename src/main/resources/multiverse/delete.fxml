@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="BOTTOM_CENTER" prefHeight="84.0" prefWidth="332.0" stylesheets="launcher.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="BOTTOM_CENTER" prefHeight="84.0" prefWidth="332.0" stylesheets="@/launcher.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
     <Label text="Are you sure you want to delete this item?" />
     <HBox alignment="CENTER" prefHeight="53.0" prefWidth="300.0" spacing="20.0">
         <Button fx:id="confirmButton" mnemonicParsing="false" onAction="#handleConfirmation" text="Delete" />

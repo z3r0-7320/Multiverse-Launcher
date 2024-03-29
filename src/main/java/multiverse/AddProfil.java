@@ -49,6 +49,10 @@ public class AddProfil implements Initializable {
         new Thread(() ->{
             setupProfileNameField(profile);
             setupComboBoxes(profile);
+            Platform.runLater(() -> {
+                versionComboBox.setDisable(false);
+                modSupportComboBox.setDisable(false);
+            });
         }).start();
     }
 

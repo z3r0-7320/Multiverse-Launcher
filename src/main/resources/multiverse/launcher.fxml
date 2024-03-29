@@ -5,7 +5,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="440.0" prefWidth="682.0"
-            stylesheets="launcher.css" xmlns="http://javafx.com/javafx/11.0.14-internal"
+            stylesheets="@/launcher.css" xmlns="http://javafx.com/javafx/11.0.14-internal"
             fx:controller="multiverse.Launcher">
     <center>
         <VBox alignment="CENTER" spacing="10">
