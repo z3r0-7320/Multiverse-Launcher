@@ -14,7 +14,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import multiverse.json.Builds;
 import multiverse.json.Profile;
-import multiverse.json.QuiltRelease;
 import multiverse.managers.BuildManager;
 import multiverse.managers.ProfileManager;
 import multiverse.managers.SettingsManager;
@@ -26,8 +25,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -44,6 +41,7 @@ public class Launcher implements Initializable {
     public Button editProfileButton;
     public Button openFolderButton;
     public TextArea changelogTextArea;
+    public Button settingsButton;
     private int lineCounter;
 
     @Override
@@ -52,7 +50,7 @@ public class Launcher implements Initializable {
             try {
                 Platform.runLater(() -> {
                     if (ProfileManager.getProfiles().isEmpty()) {
-                        SettingsManager.updateSettings(ProfileManager.createProfile("Latest", "latest", false, ""));
+                        SettingsManager.updateLastProfile(ProfileManager.createProfile("Latest", "latest", false, ""));
                     }
                     for (Profile profile : ProfileManager.getProfiles()) {
                         profileComboBox.getItems().add(profile);
@@ -262,6 +260,7 @@ public class Launcher implements Initializable {
         deleteProfileButton.setDisable(disable);
         openFolderButton.setDisable(disable);
         launchButton.setDisable(disable);
+        settingsButton.setDisable(disable);
     }
 
     private void refreshUI() {
@@ -274,7 +273,7 @@ public class Launcher implements Initializable {
     }
 
     public void selectProfile(ActionEvent actionEvent) {
-        SettingsManager.updateSettings(profileComboBox.getValue());
+        SettingsManager.updateLastProfile(profileComboBox.getValue());
     }
 
     public void onProfileDeleteButtonClick(ActionEvent actionEvent) throws IOException {
@@ -289,10 +288,10 @@ public class Launcher implements Initializable {
                 profileComboBox.getItems().remove(profile);
                 if (profileComboBox.getItems().isEmpty()) {
                     profileComboBox.setValue(null);
-                    SettingsManager.updateSettings(null);
+                    SettingsManager.updateLastProfile(null);
                 } else {
                     profileComboBox.setValue(ProfileManager.getProfiles().get(0));
-                    SettingsManager.updateSettings(ProfileManager.getProfiles().get(0));
+                    SettingsManager.updateLastProfile(ProfileManager.getProfiles().get(0));
                 }
 
             }
@@ -334,5 +333,15 @@ public class Launcher implements Initializable {
                 }
             }
         });
+    }
+
+    public void onSettingsButtonClick(ActionEvent actionEvent) throws IOException {
+        disableUI(true);
+        ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
+        Stage popupStage = createPopupStage("Settings", "settings.fxml");
+        popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
+        popupStage.setOnHiding(event -> Platform.runLater(()->disableUI(false)));
+        popupStage.setOnCloseRequest(event -> Platform.runLater(()->disableUI(false)));
+        popupStage.show();
     }
 }

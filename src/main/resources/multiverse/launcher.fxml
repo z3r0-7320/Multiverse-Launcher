@@ -4,17 +4,17 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="440.0" prefWidth="682.0"
-            stylesheets="@/launcher.css" xmlns="http://javafx.com/javafx/11.0.14-internal"
+<BorderPane prefHeight="440.0" prefWidth="814.0" stylesheets="@/launcher.css"
+            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="multiverse.Launcher">
     <center>
         <VBox alignment="CENTER" spacing="10">
             <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                 <Tab text="Changelogs">
                     <AnchorPane>
-                        <TextArea fx:id="changelogTextArea" editable="false" wrapText="true" prefHeight="200.0"
-                                  prefWidth="200.0" AnchorPane.bottomAnchor="0.0"
-                                  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                        <TextArea fx:id="changelogTextArea" editable="false" prefHeight="200.0" prefWidth="200.0"
+                                  wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                     </AnchorPane>
                 </Tab>
                 <Tab text="Console">
@@ -40,6 +40,8 @@
             <Button fx:id="deleteProfileButton" onAction="#onProfileDeleteButtonClick" text="Delete Profile"/>
             <Button fx:id="openFolderButton" onAction="#onOpenFolderButtonClick" text="Open Folder"/>
             <Button fx:id="launchButton" onAction="#onLaunchButtonClick" text="Launch"/>
+            <Button fx:id="settingsButton" layoutX="695.0" layoutY="20.0" onAction="#onSettingsButtonClick"
+                    text="Settings"/>
         </HBox>
     </bottom>
 </BorderPane>

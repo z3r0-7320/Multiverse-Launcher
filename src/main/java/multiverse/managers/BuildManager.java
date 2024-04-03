@@ -35,7 +35,7 @@ public class BuildManager {
             }
         }
         try {
-            URL obj = new URL("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/builds");
+            URL obj = new URL(SettingsManager.getApiKey() == null || SettingsManager.getApiKey().isBlank() ? "https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/builds" : ("https://api.itch.io/uploads/9891067/builds?api_key=" + SettingsManager.getApiKey()));
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
             int responseCode = con.getResponseCode();

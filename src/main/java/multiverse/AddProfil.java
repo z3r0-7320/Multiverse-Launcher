@@ -12,6 +12,7 @@ import multiverse.managers.BuildManager;
 import multiverse.managers.ProfileManager;
 import multiverse.managers.SettingsManager;
 import multiverse.utils.DirectoryDeleter;
+import multiverse.utils.Downloader;
 import multiverse.utils.QuiltManager;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -167,26 +168,29 @@ public class AddProfil implements Initializable {
             boolean error = false;
             disableUI(true);
             if (!builds.isEmpty() && build.getId() != 0 && (dir.mkdirs() || !jar.exists())) {
-                try {
-                    if (download(new URL("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/" + (build.equals(Builds.Build.latest) ? builds.get(0).getId() : build.getId())), dir.getPath(), "cosmic_reach.zip"))
-                        if (unzip(new File(dir, "cosmic_reach.zip").getPath(), dir)) {
-                            File cosmicReachJar = null;
-                            List<File> otherFiles = new ArrayList<>();
-                            for (File file : Objects.requireNonNullElseGet(dir.listFiles(), () -> new File[0])) {
-                                if (file.getName().endsWith(".jar")) {
-                                    cosmicReachJar = file;
-                                } else otherFiles.add(file);
-                            }
-                            if (cosmicReachJar == null || !cosmicReachJar.renameTo(new File(dir, Statics.COSMIC_REACH_JAR_NAME))) {
-                                error = showError("Failed to rename jar");
-                            }
-                            new File(dir, "cosmic_reach.zip").delete();
-                            for (File file : otherFiles)
-                                file.delete();
-                        } else error = showError("Failed to unzip");
-                    else error = showError("Failed to download");
-                } catch (MalformedURLException ignored) {
-                }
+                progressBar.setVisible(true);
+                //if (Downloader.downloadFile("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/%s" + (build.equals(Builds.Build.latest) ? builds.get(0).getId() : build.getId()), dir,
+                if (Downloader.downloadFile(
+                        String.format(SettingsManager.getApiKey() == null || SettingsManager.getApiKey().isBlank() ?
+                                "https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/%s" : ("https://api.itch.io/builds/%s/download/archive/default?api_key=" + SettingsManager.getApiKey()),
+                                (build.equals(Builds.Build.latest) ? builds.get(0).getId() : build.getId())),
+                        dir, "cosmic_reach.zip", d -> Platform.runLater(() -> progressBar.setProgress(d))))
+                    if (unzip(new File(dir, "cosmic_reach.zip").getPath(), dir)) {
+                        File cosmicReachJar = null;
+                        List<File> otherFiles = new ArrayList<>();
+                        for (File file : Objects.requireNonNullElseGet(dir.listFiles(), () -> new File[0])) {
+                            if (file.getName().endsWith(".jar")) {
+                                cosmicReachJar = file;
+                            } else otherFiles.add(file);
+                        }
+                        if (cosmicReachJar == null || !cosmicReachJar.renameTo(new File(dir, Statics.COSMIC_REACH_JAR_NAME))) {
+                            error = showError("Failed to rename jar");
+                        }
+                        new File(dir, "cosmic_reach.zip").delete();
+                        for (File file : otherFiles)
+                            file.delete();
+                    } else error = showError("Failed to unzip");
+                else error = showError("Failed to download");
             }
             if (error) DirectoryDeleter.deleteDir(dir);
             boolean b = !quilt;
@@ -245,40 +249,9 @@ public class AddProfil implements Initializable {
     }
 
     public void handleCancel(ActionEvent actionEvent) {
-        Stage stage = (Stage) cancelButton.getScene().getWindow();
-        stage.close();
-    }
-
-    private boolean download(URL url, String path, String name) {
-        boolean r = true;
-        progressBar.setVisible(true);
-        try {
-            HttpsURLConnection httpsConn;
-            httpsConn = (HttpsURLConnection) url.openConnection();
-            int responseCode = httpsConn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                InputStream inputStream = httpsConn.getInputStream();
-                String saveFilePath = path + File.separator + name;
-                FileOutputStream outputStream = new FileOutputStream(saveFilePath);
-                int bytesRead;
-                byte[] buffer = new byte[4096];
-                long totalBytesRead = 0;
-                long fileSize = httpsConn.getContentLength();
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
-                    double percent = (double) totalBytesRead / fileSize;
-                    Platform.runLater(() -> progressBar.setProgress(percent));
-                }
-                outputStream.close();
-                inputStream.close();
-            } else {
-                r = false;
-            }
-            httpsConn.disconnect();
-        } catch (IOException e) {
-            r = false;
-        }
-        return r;
+        Platform.runLater(() -> {
+            Stage stage = (Stage) cancelButton.getScene().getWindow();
+            stage.close();
+        });
     }
 }

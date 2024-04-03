@@ -16,7 +16,7 @@ public class SettingsManager {
 
     static {
         if (!FILE.exists()) {
-            SETTINGS = new Settings("latest");
+            SETTINGS = new Settings("latest", null);
         } else {
             try {
                 SETTINGS = GSON.fromJson(Files.readString(FILE.toPath()), Settings.class);
@@ -26,7 +26,7 @@ public class SettingsManager {
         }
     }
 
-    public static boolean updateSettings(Profile lastProfile) {
+    public static boolean updateLastProfile(Profile lastProfile) {
         if (lastProfile == null) return false;
         try {
             SETTINGS.setLastProfile(lastProfile.getName());
@@ -37,7 +37,22 @@ public class SettingsManager {
         }
     }
 
+    public static boolean updateIchIoApiKey(String apiKey) {
+        if (apiKey == null) return false;
+        try {
+            SETTINGS.setApiKey(apiKey);
+            Files.write(FILE.toPath(), GSON.toJson(SETTINGS).getBytes());
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     public static String getLastProfile() {
         return SETTINGS.getLastProfile();
+    }
+
+    public static String getApiKey() {
+        return SETTINGS.getApiKey();
     }
 }

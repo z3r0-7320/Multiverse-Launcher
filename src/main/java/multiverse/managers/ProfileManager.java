@@ -26,7 +26,7 @@ public class ProfileManager {
             Profile profile = new Profile(name, version, new File(Statics.PROFILES_DIRECTORY, name).getPath(), useQuilt, quiltLoaderVersion);
             Files.write(new File(dir, "profile.json").toPath(), GSON.toJson(profile).getBytes());
             profiles.add(profile);
-            SettingsManager.updateSettings(profile);
+            SettingsManager.updateLastProfile(profile);
             new File(dir, "mods").mkdir();
             new File(dir, "worlds").mkdir();
             new File(dir, "quilt-mods").mkdir();
@@ -49,7 +49,7 @@ public class ProfileManager {
         profile.setQuiltLoaderVersion(quiltLoaderVersion);
         try {
             Files.write(new File(new File(Statics.PROFILES_DIRECTORY, name), "profile.json").toPath(), GSON.toJson(profile).getBytes());
-            SettingsManager.updateSettings(profile);
+            SettingsManager.updateLastProfile(profile);
             return profile;
         } catch (IOException e) {
         }
