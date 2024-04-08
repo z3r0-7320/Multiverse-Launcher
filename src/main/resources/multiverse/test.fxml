@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.shape.SVGPath?>
+<HBox spacing="10" stylesheets="@/test.css">
+    <Button styleClass="close-button">
+        <graphic>
+            <SVGPath
+                    content="M7.116 8l-4.558 4.558.884.884L8 8.884l4.558 4.558.884-.884L8.884 8l4.558-4.558-.884-.884L8 7.116 3.442 2.558l-.884.884L7.116 8z"/>
+        </graphic>
+    </Button>
+    <Button styleClass="maximize-button">
+        <graphic>
+            <SVGPath content="M3 3v10h10V3H3zm9 9H4V4h8v8z"/>
+        </graphic>
+    </Button>
+    <Button styleClass="minimize-button">
+        <graphic>
+            <SVGPath content="M14 8v1H3V8h11z"/>
+        </graphic>
+    </Button>
+</HBox>

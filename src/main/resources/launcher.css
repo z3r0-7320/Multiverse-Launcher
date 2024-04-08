@@ -131,3 +131,19 @@
 .text-field:focused .content {
     -fx-background-color: #4c4c4c;
 }
+
+.slider .axis {
+    -fx-tick-label-fill: #ffffff;
+}
+
+.slider .track {
+    -fx-background-color: #333333;
+    -fx-background-radius: 2;
+    -fx-border-color: #007acc;
+    -fx-border-radius: 2;
+}
+
+.slider .thumb {
+    -fx-background-color: #007acc;
+    -fx-background-radius: 2;
+}

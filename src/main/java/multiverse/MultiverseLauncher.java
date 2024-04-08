@@ -13,12 +13,13 @@ public class MultiverseLauncher extends Application {
     static {
         Statics.PROFILES_DIRECTORY.mkdirs();
         Statics.VERSIONS_DIRECTORY.mkdirs();
+        Statics.ICONS_DIRECTORY.mkdirs();
         Statics.QUILT_DIRECTORY.mkdirs();
     }
 
     @Override
     public void start(Stage stage) throws IOException {
-        stage.setMinWidth(1024);
+        stage.setMinWidth(1040);
         stage.setMinHeight(576);
         FXMLLoader fxmlLoader = new FXMLLoader(MultiverseLauncher.class.getResource("launcher.fxml"));
         Scene scene = new Scene(fxmlLoader.load());

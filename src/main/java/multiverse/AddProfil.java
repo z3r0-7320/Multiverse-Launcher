@@ -4,6 +4,9 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import multiverse.json.Builds;
 import multiverse.json.Profile;
@@ -15,10 +18,10 @@ import multiverse.utils.DirectoryDeleter;
 import multiverse.utils.Downloader;
 import multiverse.utils.QuiltManager;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,22 +43,11 @@ public class AddProfil implements Initializable {
 
 
     public boolean isEdit;
+    public File icon;
     public Profile profile;
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        isEdit = ProgramState.getCurrentStatus() == ProgramState.ProgramStateEnum.EDIT_PROFILE;
-        profile = isEdit ? ProfileManager.getProfile(SettingsManager.getLastProfile()) : null;
-
-        new Thread(() ->{
-            setupProfileNameField(profile);
-            setupComboBoxes(profile);
-            Platform.runLater(() -> {
-                versionComboBox.setDisable(false);
-                modSupportComboBox.setDisable(false);
-            });
-        }).start();
-    }
+    public ImageView profileImageView;
+    public Button chooseImageButton;
+    public Button removeImageButton;
 
     private static boolean unzip(String zipFilePath, File destDir) {
         try {
@@ -106,6 +98,26 @@ public class AddProfil implements Initializable {
         return destFile;
     }
 
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        isEdit = ProgramState.getCurrentStatus() == ProgramState.ProgramStateEnum.EDIT_PROFILE;
+        profile = isEdit ? ProfileManager.getProfile(SettingsManager.getLastProfile()) : null;
+        if (profile == null || profile.getIconName() == null || profile.getIconName().isBlank())
+            setDefaultImage();
+        else {
+            icon = new File(Statics.ICONS_DIRECTORY, profile.getIconName());
+            profileImageView.setImage(new Image(icon.toURI().toString()));
+        }
+        new Thread(() -> {
+            setupProfileNameField(profile);
+            setupComboBoxes(profile);
+            Platform.runLater(() -> {
+                versionComboBox.setDisable(false);
+                modSupportComboBox.setDisable(false);
+            });
+        }).start();
+    }
+
     private void setupProfileNameField(Profile profile) {
         Platform.runLater(() -> {
             profileNameField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -149,8 +161,6 @@ public class AddProfil implements Initializable {
             return;
         }
 
-        // int selectedBuildIndex = versionComboBox.getSelectionModel().getSelectedIndex();
-        //Builds.Build build = builds.get(selectedBuildIndex - 1 == -1 ? 0 : selectedBuildIndex - 1);
         Builds.Build build = versionComboBox.getSelectionModel().getSelectedItem();
         File dir = new File(Statics.VERSIONS_DIRECTORY, (build.equals(Builds.Build.latest) ? builds.isEmpty() ? "0.0.0" : builds.get(0).getUserVersion() : build.getUserVersion()));
         File jar = new File(dir, Statics.COSMIC_REACH_JAR_NAME);
@@ -169,10 +179,10 @@ public class AddProfil implements Initializable {
             disableUI(true);
             if (!builds.isEmpty() && build.getId() != 0 && (dir.mkdirs() || !jar.exists())) {
                 progressBar.setVisible(true);
-                //if (Downloader.downloadFile("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/%s" + (build.equals(Builds.Build.latest) ? builds.get(0).getId() : build.getId()), dir,
                 if (Downloader.downloadFile(
                         String.format(SettingsManager.getApiKey() == null || SettingsManager.getApiKey().isBlank() ?
-                                "https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/%s" : ("https://api.itch.io/builds/%s/download/archive/default?api_key=" + SettingsManager.getApiKey()),
+                                        "https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/%s" :
+                                        ("https://api.itch.io/builds/%s/download/archive/default?api_key=" + SettingsManager.getApiKey()),
                                 (build.equals(Builds.Build.latest) ? builds.get(0).getId() : build.getId())),
                         dir, "cosmic_reach.zip", d -> Platform.runLater(() -> progressBar.setProgress(d))))
                     if (unzip(new File(dir, "cosmic_reach.zip").getPath(), dir)) {
@@ -202,15 +212,18 @@ public class AddProfil implements Initializable {
                     DirectoryDeleter.deleteDir(new File(Statics.QUILT_DIRECTORY, quiltRelease.getVersionNumber()));
                 }
             }
-            if ((jar.exists() || builds.isEmpty()) && b)//&& !profileDir.exists() || isEdit
+            if ((jar.exists() || builds.isEmpty()) && b)
                 if (isEdit) {
-                    if ((!profileName.equals(profile.getName()) || (!build.equals(Builds.Build.unknown) && !build.getUserVersion().equals(profile.getVersion())) || (!quiltRelease.equals(QuiltRelease.unknown) && !quiltRelease.getVersionNumber().equals(profile.getQuiltLoaderVersion())))) {
-                        if (ProfileManager.editProfile(profile, profileName, build.getUserVersion(), quilt, quiltRelease.getVersionNumber()) != null)
+                    if ((!profileName.equals(profile.getName()) ||
+                         (!build.equals(Builds.Build.unknown) && !build.getUserVersion().equals(profile.getVersion())) ||
+                         (!quiltRelease.equals(QuiltRelease.unknown) && !quiltRelease.getVersionNumber().equals(profile.getQuiltLoaderVersion())) ||
+                         !Objects.equals(profile.getIconName() != null ? new File(Statics.ICONS_DIRECTORY, profile.getIconName()) : null, icon))) {
+                        if (ProfileManager.editProfile(profile, profileName, build.getUserVersion(), quilt, quiltRelease.getVersionNumber(), icon) != null)
                             closeWindow();
                         else showError("Failed to edit profile");
                     } else closeWindow();
                 } else if (!profileDir.exists())
-                    if (ProfileManager.createProfile(profileName, build.getUserVersion(), quilt, quiltRelease.getVersionNumber()) != null)
+                    if (ProfileManager.createProfile(profileName, build.getUserVersion(), quilt, quiltRelease.getVersionNumber(), icon) != null)
                         closeWindow();
                     else showError("Failed to create profile");
                 else showError("Profile already exists");
@@ -223,7 +236,7 @@ public class AddProfil implements Initializable {
         if (dir == null || !dir.isDirectory()) return false;
         for (File file : Objects.requireNonNullElseGet(dir.listFiles(), () -> new File[0])) {
             if (file.getName().endsWith(".jar")) {
-                return file.renameTo(new File(dir, newName));//file.renameTo(new File(dir, newName));
+                return file.renameTo(new File(dir, newName));
             }
         }
         return false;
@@ -232,6 +245,11 @@ public class AddProfil implements Initializable {
     private void disableUI(boolean disable) {
         Platform.runLater(() -> {
             saveButton.setDisable(disable);
+            cancelButton.setDisable(disable);
+            versionComboBox.setDisable(disable);
+            modSupportComboBox.setDisable(disable);
+            chooseImageButton.setDisable(disable);
+            removeImageButton.setDisable(disable);
             profileNameField.setDisable(disable);
         });
     }
@@ -253,5 +271,22 @@ public class AddProfil implements Initializable {
             Stage stage = (Stage) cancelButton.getScene().getWindow();
             stage.close();
         });
+    }
+
+    public void handleChooseImage(ActionEvent actionEvent) {
+        disableUI(true);
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+        fileChooser.setInitialDirectory(Statics.ICONS_DIRECTORY);
+        icon = fileChooser.showOpenDialog(chooseImageButton.getScene().getWindow());
+        if (icon != null) {
+            profileImageView.setImage(new Image(icon.toURI().toString()));
+        }
+        disableUI(false);
+    }
+
+    public void setDefaultImage() {
+        icon = null;
+        profileImageView.setImage(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
     }
 }

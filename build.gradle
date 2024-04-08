@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'multiverse'
-version '0.0.4'
+version '0.0.5'
 
 repositories {
     mavenCentral()
@@ -64,6 +64,7 @@ dependencies {
     implementation "org.openjfx:javafx-fxml:${javafx_version}:mac-aarch64"
 
     implementation('com.google.code.gson:gson:2.10.1')
+    implementation('org.hjson:hjson:3.1.0')
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")

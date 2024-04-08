@@ -1,15 +1,22 @@
 package multiverse;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
+import javafx.scene.image.*;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import multiverse.json.Builds;
@@ -17,10 +24,10 @@ import multiverse.json.Profile;
 import multiverse.managers.BuildManager;
 import multiverse.managers.ProfileManager;
 import multiverse.managers.SettingsManager;
+import multiverse.utils.Explorer;
+import multiverse.utils.LegacyUpdater;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.swing.*;
-import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -42,28 +49,8 @@ public class Launcher implements Initializable {
     public Button openFolderButton;
     public TextArea changelogTextArea;
     public Button settingsButton;
+    public FlowPane profilePane;
     private int lineCounter;
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        new Thread(() -> {
-            try {
-                Platform.runLater(() -> {
-                    if (ProfileManager.getProfiles().isEmpty()) {
-                        SettingsManager.updateLastProfile(ProfileManager.createProfile("Latest", "latest", false, ""));
-                    }
-                    for (Profile profile : ProfileManager.getProfiles()) {
-                        profileComboBox.getItems().add(profile);
-                    }
-                    Profile lastProfile = ProfileManager.getProfile(SettingsManager.getLastProfile());
-                    profileComboBox.setValue(lastProfile == null ? ProfileManager.getProfiles().get(0) : lastProfile);
-                    changelogTextArea.setText(String.join("\n\n", GSON.fromJson(getChangeLog(), String[].class)));
-                });
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
-    }
 
     private static String getChangeLog() {
         try {
@@ -105,6 +92,29 @@ public class Launcher implements Initializable {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        new Thread(() -> {
+            try {
+                Platform.runLater(() -> {
+                    if (ProfileManager.getProfiles().isEmpty()) {
+                        SettingsManager.updateLastProfile(ProfileManager.createProfile("Latest", "latest", false, "", null));
+                    }
+                    for (Profile profile : ProfileManager.getProfiles()) {
+                        profileComboBox.getItems().add(profile);
+                        addProfile(profile);
+                    }
+                    Profile lastProfile = ProfileManager.getProfile(SettingsManager.getLastProfile());
+                    profileComboBox.setValue(lastProfile == null ? ProfileManager.getProfiles().get(0) : lastProfile);
+                    changelogTextArea.setText(String.join("\n\n", GSON.fromJson(getChangeLog(), String[].class)));
+                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            LegacyUpdater.update();
+        }).start();
     }
 
     @FXML
@@ -152,15 +162,16 @@ public class Launcher implements Initializable {
             if (launchTarget.exists() && ((profile.useQuilt() && new File(Statics.QUILT_DIRECTORY, profile.getQuiltLoaderVersion() + "/" + Statics.QUILT_LOADER_JAR_NAME).exists()) || !profile.useQuilt()))
                 try {
                     ProcessBuilder processBuilder = profile.useQuilt() ?
-                            new ProcessBuilder("java", "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
-                                    "-Dloader.modsDir=" + Statics.PROFILES_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getName() + "/quilt-mods",
+                            new ProcessBuilder("java",
+                                    "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m",
+                                    "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m",
+                                    "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
                                     "-Dloader.skipMcProvider=true",
                                     "-Dcosmicquilt.colorizeLogs=false",
                                     "-Dcosmicquilt.cacheLogs=false",
-                                    //"-Dloader.addMods=" + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar",
                                     "-classpath", Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
                                     "org.quiltmc.loader.impl.launch.knot.KnotClient") :
-                            new ProcessBuilder("java", "-jar", launchTarget.getAbsolutePath());
+                            new ProcessBuilder("java", "-jar", "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m", "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m", launchTarget.getAbsolutePath());
 
                     processBuilder.directory(new File(Statics.PROFILES_DIRECTORY, profile.getName()));
 
@@ -177,6 +188,7 @@ public class Launcher implements Initializable {
             else Platform.runLater(() -> consoleTextArea.setText("Failed to find version " + finalVersion + "\n"));
         }).start();
     }
+
     private void writeToWindow(final InputStream src) {
         new Thread(() -> {
             try {
@@ -255,6 +267,7 @@ public class Launcher implements Initializable {
 
     private void disableUI(boolean disable) {
         profileComboBox.setDisable(disable);
+        profilePane.setDisable(disable);
         addProfileButton.setDisable(disable);
         editProfileButton.setDisable(disable);
         deleteProfileButton.setDisable(disable);
@@ -265,15 +278,19 @@ public class Launcher implements Initializable {
 
     private void refreshUI() {
         profileComboBox.getItems().clear();
+        profilePane.getChildren().clear();
         for (Profile profile : ProfileManager.getProfiles()) {
             profileComboBox.getItems().add(profile);
+            addProfile(profile);
         }
         profileComboBox.setValue(ProfileManager.getProfile(SettingsManager.getLastProfile()));
+        selectProfile(ProfileManager.getProfile(SettingsManager.getLastProfile()));
         disableUI(false);
     }
 
     public void selectProfile(ActionEvent actionEvent) {
         SettingsManager.updateLastProfile(profileComboBox.getValue());
+        selectProfile(profileComboBox.getValue());
     }
 
     public void onProfileDeleteButtonClick(ActionEvent actionEvent) throws IOException {
@@ -316,23 +333,7 @@ public class Launcher implements Initializable {
     }
 
     public void onOpenFolderButtonClick(ActionEvent actionEvent) {
-        SwingUtilities.invokeLater(() -> {
-            File profile = new File(Statics.PROFILES_DIRECTORY, profileComboBox.getValue().getName());
-            if (!profile.isDirectory()) {
-                throw new RuntimeException("`" + profile + "` is not a directory!");
-            } else {
-                try {
-                    Desktop.getDesktop().open(profile);
-                } catch (Exception var2) {
-                    if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-                        try {
-                            Runtime.getRuntime().exec("explorer.exe \"" + profile.getAbsolutePath() + "\"");
-                        } catch (IOException ignored) {
-                        }
-                    }
-                }
-            }
-        });
+        Explorer.openExplorer(new File(Statics.PROFILES_DIRECTORY, profileComboBox.getValue().getName()));
     }
 
     public void onSettingsButtonClick(ActionEvent actionEvent) throws IOException {
@@ -340,8 +341,92 @@ public class Launcher implements Initializable {
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
         Stage popupStage = createPopupStage("Settings", "settings.fxml");
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
-        popupStage.setOnHiding(event -> Platform.runLater(()->disableUI(false)));
-        popupStage.setOnCloseRequest(event -> Platform.runLater(()->disableUI(false)));
+        popupStage.setOnHiding(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.setOnCloseRequest(event -> Platform.runLater(() -> disableUI(false)));
         popupStage.show();
     }
+
+
+    public void addProfile(Profile profile) {
+        VBox profileBox = new VBox();
+        profileBox.setAlignment(Pos.CENTER);
+
+        Image originalImage = profile.getIconName() == null || profile.getIconName().isBlank() || !new File(Statics.ICONS_DIRECTORY, profile.getIconName()).exists() ?
+                new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")) :
+                scale(new Image(new File(Statics.ICONS_DIRECTORY, profile.getIconName()).toURI().toString()), 256);
+
+        ImageView profileImage = new ImageView(originalImage);
+        profileImage.setPreserveRatio(true);
+        profileImage.setFitHeight(100);
+        profileImage.setFitWidth(100);
+
+        StackPane imagePane = new StackPane();
+        imagePane.setMinSize(100, 100);
+        imagePane.setMaxSize(100, 100);
+        imagePane.getChildren().add(profileImage);
+        StackPane.setAlignment(profileImage, Pos.CENTER);
+
+        profileBox.getChildren().add(imagePane);
+
+        Label profileName = new Label(profile.getName());
+        profileName.setMaxWidth(100);
+        profileName.setAlignment(Pos.CENTER);
+        profileBox.getChildren().add(profileName);
+
+        profileBox.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 1) {
+                selectProfile(profileBox, profile);
+            } else if (e.getClickCount() == 2) {
+                startProfile(profile);
+            }
+        });
+
+        profilePane.getChildren().add(profileBox);
+    }
+
+    public Image scale(Image source, int targetSize) {
+        double scaleFactor = Math.max(targetSize / source.getWidth(), targetSize / source.getHeight());
+
+        int targetWidth = (int) (source.getWidth() * scaleFactor);
+        int targetHeight = (int) (source.getHeight() * scaleFactor);
+
+        PixelReader reader = source.getPixelReader();
+        WritableImage output = new WritableImage(targetWidth, targetHeight);
+        PixelWriter writer = output.getPixelWriter();
+
+        for (int y = 0; y < targetHeight; y++) {
+            for (int x = 0; x < targetWidth; x++) {
+                int srcX = (int) (x / (double) targetWidth * source.getWidth());
+                int srcY = (int) (y / (double) targetHeight * source.getHeight());
+                writer.setColor(x, y, reader.getColor(srcX, srcY));
+            }
+        }
+
+        return output;
+    }
+
+    public void selectProfile(Profile profile) {
+        if (profile == null) return;
+        ObservableList<Node> profiles = profilePane.getChildren();
+        for (Node node : profiles) {
+            VBox profileBox = (VBox) node;
+            if (profileBox.getChildren().get(1) instanceof Label label && label.getText().equals(profile.getName())) {
+                selectProfile(profileBox, profile);
+                return;
+            }
+        }
+    }
+
+    public void selectProfile(VBox profileBox, Profile profile) {
+        for (Node node : profilePane.getChildren()) {
+            node.setStyle("");
+        }
+        profileComboBox.setValue(profile);
+        profileBox.setStyle("-fx-border-color: #007acc; -fx-border-radius: 5; -fx-border-width: 5; -fx-border-insets: -5");
+    }
+
+    public void startProfile(Profile profile) {
+        onLaunchButtonClick();
+    }
+
 }

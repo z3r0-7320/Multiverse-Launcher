@@ -8,13 +8,15 @@ public class Profile {
     private String gameDir;
     private boolean useQuilt;
     private String quiltLoaderVersion;
+    private String iconName;
 
-    public Profile(String name, String version, String gameDir, boolean useQuilt, String quiltLoaderVersion) {
+    public Profile(String name, String version, String gameDir, boolean useQuilt, String quiltLoaderVersion, String iconName) {
         this.name = name;
         this.version = version;
         this.gameDir = gameDir;
         this.useQuilt = useQuilt;
         this.quiltLoaderVersion = quiltLoaderVersion;
+        this.iconName = iconName;
     }
 
     @Override
@@ -62,6 +64,14 @@ public class Profile {
         this.useQuilt = useQuilt;
     }
 
+    public String getIconName() {
+        return iconName;
+    }
+
+    public void setIconName(String iconName) {
+        this.iconName = iconName;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
@@ -78,5 +88,4 @@ public class Profile {
     public int hashCode() {
         return Objects.hash(name, version, gameDir, useQuilt, quiltLoaderVersion);
     }
-
 }

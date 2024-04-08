@@ -11,7 +11,7 @@ public class Delete {
     Runnable confirmAction;
     Runnable cancelAction;
 
-    public Delete(Runnable confirmAction, Runnable cancelAction){
+    public Delete(Runnable confirmAction, Runnable cancelAction) {
         this.confirmAction = confirmAction;
         this.cancelAction = cancelAction;
     }

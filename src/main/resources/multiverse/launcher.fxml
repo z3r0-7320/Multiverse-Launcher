@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--<?import javafx.scene.web.*?>-->
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane prefHeight="440.0" prefWidth="814.0" stylesheets="@/launcher.css"
-            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="440.0" prefWidth="814.0"
+            stylesheets="@/launcher.css" xmlns="http://javafx.com/javafx/11.0.14-internal"
             fx:controller="multiverse.Launcher">
     <center>
         <VBox alignment="CENTER" spacing="10">
             <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                <Tab text="Profiles">
+                    <AnchorPane>
+                        <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <FlowPane fx:id="profilePane" hgap="10.0" vgap="10" VBox.vgrow="ALWAYS">
+                                <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                </padding>
+                            </FlowPane>
+                        </ScrollPane>
+                    </AnchorPane>
+                </Tab>
                 <Tab text="Changelogs">
                     <AnchorPane>
                         <TextArea fx:id="changelogTextArea" editable="false" prefHeight="200.0" prefWidth="200.0"
@@ -25,7 +36,6 @@
                 </Tab>
                 <!--<Tab text="Mods">
                     <AnchorPane>
-                        <WebView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                     </AnchorPane>
                 </Tab>-->
             </TabPane>
