@@ -69,22 +69,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
-/*
-task generateJava {
-    ext.outputDir = "$buildDir/generated/java"
-    inputs.property('version', project.version)
-    outputs.dir outputDir
-    doLast {
-        mkdir "$outputDir/com/foo"
-        file("$outputDir/com/foo/BuildProperties.java").text =
-                """|package com.foo;
-               |public class BuildProperties {
-               |    public static String getVersion() { return "${project.version}"; }
-               |}""".stripMargin()
-    }
-}
-compileJava.dependsOn generateJava
-sourceSets.main.java.srcDir generateJava.outputDir*/
 
 jar{
     manifest {
