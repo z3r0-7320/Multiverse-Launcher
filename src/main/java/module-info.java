@@ -11,6 +11,7 @@ module multiverse {
     opens multiverse.json to com.google.gson;
     exports multiverse.json;
     exports multiverse.managers;
+    exports multiverse.cr_downloader.crversions;
     opens multiverse.managers to javafx.fxml;
     exports multiverse;
     opens multiverse to javafx.fxml;

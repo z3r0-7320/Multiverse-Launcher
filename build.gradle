@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'multiverse'
-version '0.0.5'
+version '0.0.6'
 
 repositories {
     mavenCentral()
@@ -45,7 +45,7 @@ dependencies {
     implementation "org.openjfx:javafx-controls:${javafx_version}:win"
     implementation "org.openjfx:javafx-fxml:${javafx_version}:win"
 
-    // openJFX MAC Windows aarch64 not yet? available
+    // openJFX Windows aarch64 not yet? available
     /*implementation "org.openjfx:javafx-base:${javafx_version}:win-aarch64"
     implementation "org.openjfx:javafx-graphics:${javafx_version}:win-aarch64"
     implementation "org.openjfx:javafx-controls:${javafx_version}:win-aarch64"
@@ -68,4 +68,28 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+/*
+task generateJava {
+    ext.outputDir = "$buildDir/generated/java"
+    inputs.property('version', project.version)
+    outputs.dir outputDir
+    doLast {
+        mkdir "$outputDir/com/foo"
+        file("$outputDir/com/foo/BuildProperties.java").text =
+                """|package com.foo;
+               |public class BuildProperties {
+               |    public static String getVersion() { return "${project.version}"; }
+               |}""".stripMargin()
+    }
+}
+compileJava.dependsOn generateJava
+sourceSets.main.java.srcDir generateJava.outputDir*/
+
+jar{
+    manifest {
+        attributes(
+                'Implementation-Version': "${project.version}",
+        )
+    }
 }

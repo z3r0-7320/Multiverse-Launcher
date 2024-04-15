@@ -1,0 +1,170 @@
+/* Root */
+.root {
+    -fx-background-color: -root-bg-color;
+}
+
+/* Scroll Pane */
+.scroll-pane, .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Text Area */
+.text-area {
+    -fx-text-fill: -text-color;
+    -fx-background-insets: 0;
+    -fx-background-color: -root-bg-color;
+}
+
+.text-area .content {
+    -fx-background-color: -root-bg-color;
+    -fx-cursor: pointer;
+}
+
+.text-area:focused .content {
+    -fx-background-color: -root-bg-color;
+}
+
+#consoleTextArea {
+    -fx-font-family: monospace;
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: -button-accent-color;
+    -fx-text-fill: -button-text-color;
+    -fx-font-weight: bold;
+}
+
+.button:hover {
+    -fx-background-color: -button-accent-color-hover;
+}
+
+/* Combo Box */
+.combo-box, .list-view, .list-cell {
+    -fx-text-fill: -text-color;
+    -fx-background-color: -secondary-bg-color;
+}
+
+.combo-box .list-view {
+    -fx-background-radius: 0 0 5 5;
+}
+
+.combo-box .list-view .list-cell:focused,
+.combo-box .list-view .list-cell:hover {
+    -fx-background-color: -combo-box-accent-color;
+}
+
+/* Scroll Bar */
+.scroll-bar {
+    -fx-background-color: -secondary-bg-color;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: -root-bg-color;
+}
+
+/* Labels */
+.label {
+    -fx-font-weight: bold;
+    -fx-text-fill: -text-color;
+}
+
+/* Tab Pane */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: -root-bg-color;
+}
+.tab-pane .tab {
+    -fx-background-color: -secondary-bg-color;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: -tab-selected-accent-color;
+}
+
+.tab .tab-label {
+    -fx-alignment: CENTER;
+    -fx-text-fill: -text-color;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: -button-text-color;
+}
+
+.tab-pane
+{
+    -fx-tab-min-width:99px;
+}
+
+.tab:selected .focus-indicator {
+    -fx-border-width: 0;
+}
+
+/* Text Field */
+.text-field {
+    -fx-text-fill: -text-color;
+    -fx-background-insets: 0;
+    -fx-background-color: -secondary-bg-color;
+}
+
+.text-field .content, .text-field:focused .content {
+    -fx-background-color: -secondary-bg-color;
+}
+
+/* Slider */
+.slider .axis {
+    -fx-tick-label-fill: -text-color;
+}
+
+.slider .track {
+    -fx-background-color: -root-bg-color;
+    -fx-background-radius: 2;
+    -fx-border-color: -slider-accent-color;
+    -fx-border-radius: 2;
+}
+
+.slider .thumb {
+    -fx-background-color: -slider-accent-color;
+    -fx-background-radius: 2;
+}
+
+/* Profile Selected */
+.profile-selected {
+    -fx-border-color: -secondary-bg-color;
+    -fx-border-radius: 5;
+    -fx-border-width: 5;
+    -fx-border-insets: -5;
+    -fx-background-color: -secondary-bg-color;
+}
+
+/* Image View */
+.image-view:disabled {
+    -fx-effect: innershadow(three-pass-box, -image-effect-color, 127, 0, 0, 0);
+}
+
+/*checkbox*/
+.check-box .box {
+    -fx-background-color: -secondary-bg-color;
+    -fx-border-width: 0;
+    -fx-border-radius:3px;
+
+}
+
+.check-box {
+    -fx-text-fill: -text-color;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M1.73,12.91 8.1,19.28 22.79,4.59 22.79,1.59 8.1,16.28 1.73,9.91";
+}
+
+.check-box:selected .box {
+
+    -fx-background-color: -button-accent-color;
+}

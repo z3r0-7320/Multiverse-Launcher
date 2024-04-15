@@ -30,12 +30,27 @@ public class Downloader {
         return null;
     }
 
+    public static boolean downloadFile(String url, File dir, String filename) {
+        return downloadFile(url, dir, filename, null, null);
+    }
+
     public static boolean downloadFile(String url, File dir, String filename, Consumer<Double> consumer) {
+        return downloadFile(url, dir, filename, null, consumer);
+    }
+
+    public static boolean downloadFile(String url, File dir, String filename, String[] headers, Consumer<Double> consumer) {
         boolean r = true;
         try {
             dir.mkdirs();
             HttpsURLConnection httpsConn;
             httpsConn = (HttpsURLConnection) new URI(url).toURL().openConnection();
+            if (headers != null) {
+                for (String header : headers) {
+                    String[] split = header.split(":", 2);
+                    if (split.length == 2) httpsConn.setRequestProperty(split[0].trim(), split[1].trim());
+                }
+            }
+
             int responseCode = httpsConn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 InputStream inputStream = httpsConn.getInputStream();

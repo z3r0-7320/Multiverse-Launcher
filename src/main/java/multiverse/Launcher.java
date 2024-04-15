@@ -1,6 +1,7 @@
 package multiverse;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,27 +15,30 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import multiverse.json.Builds;
+import multiverse.cr_downloader.DownloadManager;
+import multiverse.cr_downloader.crversions.CosmicReachVersion;
+import multiverse.cr_downloader.exceptions.CRDownloaderException;
 import multiverse.json.Profile;
-import multiverse.managers.BuildManager;
+import multiverse.launcherupdater.Updater;
 import multiverse.managers.ProfileManager;
 import multiverse.managers.SettingsManager;
+import multiverse.utils.Downloader;
 import multiverse.utils.Explorer;
 import multiverse.utils.LegacyUpdater;
+import multiverse.utils.ThemeSwitcher;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static multiverse.Statics.GSON;
 
@@ -50,48 +54,13 @@ public class Launcher implements Initializable {
     public TextArea changelogTextArea;
     public Button settingsButton;
     public FlowPane profilePane;
+    public BorderPane borderPane;
+    public Button updateButton;
     private int lineCounter;
 
     private static String getChangeLog() {
-        try {
-            URL url = new URL("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/changelog");
-            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-            StringBuilder sb = new StringBuilder();
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                sb.append(inputLine).append("\n");
-            }
-            in.close();
-            return sb.toString();
-        } catch (IOException e) {
-            return "[\"Failed to fetch changelog\"]";
-        }
-    }
-
-    private static boolean unzip(String zipFilePath, File destDir) {
-        try {
-            byte[] buffer = new byte[1024];
-            ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath));
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                if (zipEntry.getName().endsWith(".jar")) {
-                    File newFile = new File(destDir, Statics.COSMIC_REACH_JAR_NAME);
-                    FileOutputStream fos = new FileOutputStream(newFile);
-                    int len;
-                    while ((len = zis.read(buffer)) > 0) {
-                        fos.write(buffer, 0, len);
-                    }
-                    fos.close();
-                    break;
-                }
-                zipEntry = zis.getNextEntry();
-            }
-            zis.closeEntry();
-            zis.close();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
+        String changelog = Downloader.downloadAsString("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/changelog");
+        return changelog != null ? changelog : "[\"Failed to fetch changelog\"]";
     }
 
     @Override
@@ -99,94 +68,94 @@ public class Launcher implements Initializable {
         new Thread(() -> {
             try {
                 Platform.runLater(() -> {
-                    if (ProfileManager.getProfiles().isEmpty()) {
-                        SettingsManager.updateLastProfile(ProfileManager.createProfile("Latest", "latest", false, "", null));
-                    }
                     for (Profile profile : ProfileManager.getProfiles()) {
                         profileComboBox.getItems().add(profile);
                         addProfile(profile);
                     }
-                    Profile lastProfile = ProfileManager.getProfile(SettingsManager.getLastProfile());
-                    profileComboBox.setValue(lastProfile == null ? ProfileManager.getProfiles().get(0) : lastProfile);
-                    changelogTextArea.setText(String.join("\n\n", GSON.fromJson(getChangeLog(), String[].class)));
+                    profileComboBox.setValue(ProfileManager.getCurrentProfile());
                 });
+                ProfileManager.getObservableProfiles().addListener((ListChangeListener<? super Profile>) observable -> Platform.runLater(() -> {
+                    profileComboBox.getItems().clear();
+                    profileComboBox.setValue(null);
+                    profilePane.getChildren().clear();
+                    for (Profile profile : ProfileManager.getProfiles()) {
+                        profileComboBox.getItems().add(profile);
+                        addProfile(profile);
+                    }
+                    profileComboBox.setValue(ProfileManager.getCurrentProfile());
+                    selectProfile(ProfileManager.getCurrentProfile());
+                }));
+                ProfileManager.currentProfileProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> {
+                    profileComboBox.setValue(newValue);
+                    selectProfile(newValue);
+                }));
+                LegacyUpdater.update();
+                if (SettingsManager.checkForUpdates()) Updater.checkForUpdates(updateButton);
+                SettingsManager.addUpdateListener((observable, oldValue, newValue) -> Platform.runLater(() -> {
+                    if (newValue) Updater.checkForUpdates(updateButton);
+                    else updateButton.setVisible(false);
+                }));
+                String changelog = getChangeLog();
+                Platform.runLater(() -> changelogTextArea.setText(String.join("\n\n", GSON.fromJson(changelog, String[].class))));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            LegacyUpdater.update();
         }).start();
     }
 
     @FXML
     protected void onLaunchButtonClick() {
+        disableUI(true);
         Profile profile = profileComboBox.getValue();
-        if (profile == null || BuildManager.builds.isEmpty()) return;
+        if (profile == null) return;
         consoleTextArea.setText("Launching Cosmic Reach...\n");
-        String version = profile.getVersion();
-        Builds.Build build;
-        if (version.equals("latest")) {
-            build = BuildManager.builds.get(0);
-            version = build.getUserVersion();
-        } else {
-            Builds.Build found = null;
-            for (Builds.Build b : BuildManager.builds) {
-                if (b.getUserVersion().equals(version)) {
-                    found = b;
-                    break;
-                }
-            }
-            build = found;
+        try {
+            DownloadManager.update();
+        } catch (CRDownloaderException ignored) {
+            consoleTextArea.appendText("Failed to update some versions\n");
         }
-        String finalVersion = version;
-        new Thread(() -> {
-            Platform.runLater(() -> disableUI(true));
-            File launchTarget = new File(Statics.VERSIONS_DIRECTORY, finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME);
-            if (launchTarget.getParentFile().mkdirs() || !launchTarget.exists()) {
-                if (build != null && build.getId() != 0) {
-                    File zip = new File(Statics.VERSIONS_DIRECTORY, finalVersion + "/cosmic_reach.zip");
-                    File dir = new File(Statics.VERSIONS_DIRECTORY, finalVersion);
-                    try {
-                        Platform.runLater(() -> consoleTextArea.appendText("Starting download of version " + finalVersion + "\n"));
-                        if (download(new URL("https://workers-playground-dawn-pond-be0d.cosmicreachdl.workers.dev/download/" + build.getId()), dir.getPath()))
-                            if (unzip(zip.getPath(), dir))
-                                zip.delete();
-                            else Platform.runLater(() -> consoleTextArea.appendText("Failed to unzip\n"));
-                        else Platform.runLater(() -> consoleTextArea.appendText("Failed to download\n"));
-
-                    } catch (MalformedURLException ignored) {
-                    }
-                } else
-                    Platform.runLater(() -> consoleTextArea.setText("Failed to find version " + finalVersion + "\n"));
-            }
-
-            if (launchTarget.exists() && ((profile.useQuilt() && new File(Statics.QUILT_DIRECTORY, profile.getQuiltLoaderVersion() + "/" + Statics.QUILT_LOADER_JAR_NAME).exists()) || !profile.useQuilt()))
+        try {
+            CosmicReachVersion build = DownloadManager.getVersion(profile.getVersion());
+            new Thread(() -> {
+                String version = build.getVersion();
                 try {
-                    ProcessBuilder processBuilder = profile.useQuilt() ?
-                            new ProcessBuilder("java",
-                                    "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m",
-                                    "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m",
-                                    "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + finalVersion + "/" + Statics.COSMIC_REACH_JAR_NAME,
-                                    "-Dloader.skipMcProvider=true",
-                                    "-Dcosmicquilt.colorizeLogs=false",
-                                    "-Dcosmicquilt.cacheLogs=false",
-                                    "-classpath", Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
-                                    "org.quiltmc.loader.impl.launch.knot.KnotClient") :
-                            new ProcessBuilder("java", "-jar", "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m", "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m", launchTarget.getAbsolutePath());
-
-                    processBuilder.directory(new File(Statics.PROFILES_DIRECTORY, profile.getName()));
-
-                    Process process = processBuilder.start();
-
-                    launchButton.setDisable(true);
-                    lineCounter = 0;
-                    writeToWindow(process.getInputStream());
-                    writeToWindow(process.getErrorStream());
-                    Platform.runLater(() -> process.onExit().thenRun(() -> disableUI(false)));
-                } catch (IOException e) {
-                    Platform.runLater(() -> disableUI(false));
+                    DownloadManager.downloadVersion(build, null);
+                } catch (CRDownloaderException e) {
+                    Platform.runLater(() -> consoleTextArea.setText("Failed to download version " + version + "\n"));
+                    return;
                 }
-            else Platform.runLater(() -> consoleTextArea.setText("Failed to find version " + finalVersion + "\n"));
-        }).start();
+                File launchTarget = new File(Statics.VERSIONS_DIRECTORY, build.getVersion() + "/" + Statics.COSMIC_REACH_JAR_NAME);
+                if (launchTarget.exists() && ((profile.useQuilt() && new File(Statics.QUILT_DIRECTORY, profile.getQuiltLoaderVersion() + "/" + Statics.QUILT_LOADER_JAR_NAME).exists()) || !profile.useQuilt()))
+                    try {
+                        ProcessBuilder processBuilder = profile.useQuilt() ?
+                                new ProcessBuilder(Statics.JAVA_EXECUTABLE,
+                                        "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m",
+                                        "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m",
+                                        "-Dloader.gameJarPath=" + Statics.VERSIONS_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + version + "/" + Statics.COSMIC_REACH_JAR_NAME,
+                                        "-Dloader.skipMcProvider=true",
+                                        "-Dcosmicquilt.colorizeLogs=false",
+                                        "-Dcosmicquilt.cacheLogs=false",
+                                        "-classpath", Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/cosmic-quilt.jar" + (System.getProperty("os.name").toLowerCase().startsWith("win") ? ";" : ":") + Statics.QUILT_DIRECTORY.getAbsolutePath().replace('\\', '/') + "/" + profile.getQuiltLoaderVersion() + "/deps/*",
+                                        "org.quiltmc.loader.impl.launch.knot.KnotClient") :
+                                new ProcessBuilder(Statics.JAVA_EXECUTABLE, "-jar", "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m", "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m", launchTarget.getAbsolutePath());
+                        processBuilder.directory(new File(Statics.PROFILES_DIRECTORY, profile.getName()));
+                        Process process = processBuilder.start();
+                        lineCounter = 0;
+                        writeToWindow(process.getInputStream());
+                        writeToWindow(process.getErrorStream());
+                        Platform.runLater(() -> process.onExit().thenRun(() -> disableUI(false)));
+                    } catch (IOException e) {
+                        Platform.runLater(() -> disableUI(false));
+                    }
+                else Platform.runLater(() -> {
+                    consoleTextArea.setText("Failed to find version " + version);
+                    disableUI(false);
+                });
+            }).start();
+        } catch (CRDownloaderException e) {
+            consoleTextArea.setText("Failed to find version " + profile.getVersion());
+            disableUI(false);
+        }
     }
 
     private void writeToWindow(final InputStream src) {
@@ -218,40 +187,14 @@ public class Launcher implements Initializable {
         }).start();
     }
 
-    private boolean download(URL url, String path) {
-        boolean r = true;
-        try {
-            HttpsURLConnection httpConn;
-            httpConn = (HttpsURLConnection) url.openConnection();
-            int responseCode = httpConn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                InputStream inputStream = httpConn.getInputStream();
-                String saveFilePath = path + File.separator + "cosmic_reach.zip";
-                FileOutputStream outputStream = new FileOutputStream(saveFilePath);
-                int bytesRead;
-                byte[] buffer = new byte[4096];
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-                outputStream.close();
-                inputStream.close();
-            } else {
-                r = false;
-            }
-            httpConn.disconnect();
-        } catch (IOException e) {
-            r = false;
-        }
-        return r;
-    }
-
     public void onProfileAddButtonClick(ActionEvent actionEvent) throws IOException {
         disableUI(true);
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.CREATE_PROFILE);
         Stage popupStage = createPopupStage("Add Profile", "add_profil.fxml");
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
-        popupStage.setOnHiding(event -> Platform.runLater(this::refreshUI));
-        popupStage.setOnCloseRequest(event -> Platform.runLater(this::refreshUI));
+        popupStage.setOnHiding(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.setOnCloseRequest(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.sizeToScene();
         popupStage.show();
     }
 
@@ -259,7 +202,9 @@ public class Launcher implements Initializable {
         Stage popupStage = new Stage();
         popupStage.setTitle(title);
         FXMLLoader fxmlLoader = new FXMLLoader(MultiverseLauncher.class.getResource(name));
-        popupStage.setScene(new Scene(fxmlLoader.load()));
+        Scene popupScene = new Scene(fxmlLoader.load());
+        popupStage.setScene(popupScene);
+        ThemeSwitcher.setTheme(popupScene);
         popupStage.setResizable(false);
         popupStage.initModality(Modality.APPLICATION_MODAL);
         return popupStage;
@@ -276,20 +221,8 @@ public class Launcher implements Initializable {
         settingsButton.setDisable(disable);
     }
 
-    private void refreshUI() {
-        profileComboBox.getItems().clear();
-        profilePane.getChildren().clear();
-        for (Profile profile : ProfileManager.getProfiles()) {
-            profileComboBox.getItems().add(profile);
-            addProfile(profile);
-        }
-        profileComboBox.setValue(ProfileManager.getProfile(SettingsManager.getLastProfile()));
-        selectProfile(ProfileManager.getProfile(SettingsManager.getLastProfile()));
-        disableUI(false);
-    }
-
     public void selectProfile(ActionEvent actionEvent) {
-        SettingsManager.updateLastProfile(profileComboBox.getValue());
+        ProfileManager.updateCurrentProfile(profileComboBox.getValue());
         selectProfile(profileComboBox.getValue());
     }
 
@@ -301,24 +234,19 @@ public class Launcher implements Initializable {
         FXMLLoader fxmlLoader = new FXMLLoader(MultiverseLauncher.class.getResource("delete.fxml"));
         fxmlLoader.setController(new Delete(() -> Platform.runLater(() -> {
             Profile profile = profileComboBox.getValue();
-            if (profile != null && ProfileManager.deleteProfile(profile.getName())) {
-                profileComboBox.getItems().remove(profile);
-                if (profileComboBox.getItems().isEmpty()) {
-                    profileComboBox.setValue(null);
-                    SettingsManager.updateLastProfile(null);
-                } else {
-                    profileComboBox.setValue(ProfileManager.getProfiles().get(0));
-                    SettingsManager.updateLastProfile(ProfileManager.getProfiles().get(0));
-                }
-
+            if (profile != null) {
+                ProfileManager.deleteProfile(profile);
             }
         }), null));
-        popupStage.setScene(new Scene(fxmlLoader.load()));
+        Scene popupScene = new Scene(fxmlLoader.load());
+        popupStage.setScene(popupScene);
+        ThemeSwitcher.setTheme(popupScene);
         popupStage.setResizable(false);
         popupStage.initModality(Modality.APPLICATION_MODAL);
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
-        popupStage.setOnHiding(event -> Platform.runLater(this::refreshUI));
-        popupStage.setOnCloseRequest(event -> Platform.runLater(this::refreshUI));
+        popupStage.setOnHiding(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.setOnCloseRequest(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.sizeToScene();
         popupStage.show();
     }
 
@@ -327,8 +255,9 @@ public class Launcher implements Initializable {
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
         Stage popupStage = createPopupStage("Edit Profile", "add_profil.fxml");
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
-        popupStage.setOnHiding(event -> Platform.runLater(this::refreshUI));
-        popupStage.setOnCloseRequest(event -> Platform.runLater(this::refreshUI));
+        popupStage.setOnHiding(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.setOnCloseRequest(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.sizeToScene();
         popupStage.show();
     }
 
@@ -343,6 +272,7 @@ public class Launcher implements Initializable {
         popupStage.getIcons().add(new Image(MultiverseLauncher.class.getResourceAsStream("icon.png")));
         popupStage.setOnHiding(event -> Platform.runLater(() -> disableUI(false)));
         popupStage.setOnCloseRequest(event -> Platform.runLater(() -> disableUI(false)));
+        popupStage.sizeToScene();
         popupStage.show();
     }
 
@@ -419,14 +349,13 @@ public class Launcher implements Initializable {
 
     public void selectProfile(VBox profileBox, Profile profile) {
         for (Node node : profilePane.getChildren()) {
-            node.setStyle("");
+            node.getStyleClass().remove("profile-selected");
         }
         profileComboBox.setValue(profile);
-        profileBox.setStyle("-fx-border-color: #007acc; -fx-border-radius: 5; -fx-border-width: 5; -fx-border-insets: -5");
+        profileBox.getStyleClass().add("profile-selected");
     }
 
     public void startProfile(Profile profile) {
         onLaunchButtonClick();
     }
-
 }

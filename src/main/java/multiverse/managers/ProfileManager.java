@@ -1,5 +1,9 @@
 package multiverse.managers;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import multiverse.Statics;
 import multiverse.json.Profile;
 import multiverse.utils.DirectoryDeleter;
@@ -10,7 +14,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,10 +22,30 @@ import static multiverse.utils.DirectoryDeleter.deleteDir;
 
 public class ProfileManager {
 
-    private static List<Profile> profiles;
+    private static final ObservableList<Profile> profiles = FXCollections.observableArrayList();
+    private static final ObjectProperty<Profile> currentProfile = new SimpleObjectProperty<>();
+
+    static {
+        getProfiles();
+        Profile profile;
+        if (profiles.isEmpty()) profile = ProfileManager.createProfile("Latest", "latest", false, "", null);
+        else if ((profile = getProfile(SettingsManager.getLastProfile())) == null) profile = profiles.get(0);
+        SettingsManager.updateLastProfile(profile);
+        currentProfile.set(profile);
+    }
+
+    public static boolean updateCurrentProfile(Profile profile) {
+        return updateCurrentProfile(profile, false);
+    }
+
+    private static boolean updateCurrentProfile(Profile profile, boolean force) {
+        if (profile == null || !force && (Objects.equals(currentProfile.get(), profile) || !SettingsManager.updateLastProfile(profile)))
+            return false;
+        currentProfile.set(profile);
+        return true;
+    }
 
     public static Profile createProfile(String name, String version, boolean useQuilt, String quiltLoaderVersion, File icon) {
-        if (profiles == null) getProfiles();
         File dir = new File(Statics.PROFILES_DIRECTORY, name);
         try {
             if (!dir.mkdirs()) return null;
@@ -35,14 +58,13 @@ public class ProfileManager {
             } else iconName = null;
             Profile profile = new Profile(name, version, new File(Statics.PROFILES_DIRECTORY, name).getPath(), useQuilt, quiltLoaderVersion, iconName);
             Files.write(new File(dir, "profile.json").toPath(), GSON.toJson(profile).getBytes());
+            updateCurrentProfile(profile);
             profiles.add(profile);
-            SettingsManager.updateLastProfile(profile);
             new File(dir, "mods").mkdir();
             new File(dir, "worlds").mkdir();
             return profile;
         } catch (IOException e) {
             DirectoryDeleter.deleteDir(dir);
-            e.printStackTrace();
         }
         return null;
     }
@@ -68,6 +90,12 @@ public class ProfileManager {
         profile.setUseQuilt(useQuilt);
         profile.setQuiltLoaderVersion(quiltLoaderVersion);
         profile.setIconName(iconName);
+        for (int i = 0; i < profiles.size(); i++) {
+            if (profiles.get(i).equals(profile)) {
+                profiles.set(i, profile);
+                break;
+            }
+        }
         try {
             Files.write(new File(new File(Statics.PROFILES_DIRECTORY, name), "profile.json").toPath(), GSON.toJson(profile).getBytes());
             SettingsManager.updateLastProfile(profile);
@@ -107,13 +135,13 @@ public class ProfileManager {
 
 
     public static Profile getProfile(String name) {
-        return (profiles == null ? getProfiles() : profiles).stream().filter(profile -> profile.getName().equals(name)).findFirst().orElse(null);
+        return profiles.stream().filter(profile -> profile.getName().equals(name)).findFirst().orElse(null);
     }
 
     public static List<Profile> getProfiles() {
         try {
-            if (profiles != null) return profiles;
-            List<Profile> profiles = new ArrayList<>();
+            if (!profiles.isEmpty()) return profiles;
+            ObservableList<Profile> profiles = FXCollections.observableArrayList();
             for (File file : Objects.requireNonNullElseGet(Statics.PROFILES_DIRECTORY.listFiles(), () -> new File[0])) {
                 File profileJson = new File(file, "profile.json");
                 if (profileJson.exists()) {
@@ -121,14 +149,37 @@ public class ProfileManager {
                     profiles.add(profile);
                 }
             }
-            return (ProfileManager.profiles = profiles);
+            ProfileManager.profiles.addAll(profiles);
+            return profiles;
         } catch (IOException e) {
             return List.of();
         }
     }
 
-    public static boolean deleteProfile(String name) {
-        File dir = new File(Statics.PROFILES_DIRECTORY, name);
-        return deleteDir(dir) && profiles.remove(getProfile(name));
+    public static boolean deleteProfile(Profile profile) {
+        File dir = new File(Statics.PROFILES_DIRECTORY, profile.getName());
+        return deleteDir(dir) && profiles.remove(profile) && updateCurrentProfile(profiles.isEmpty() ? null : profiles.get(0));
     }
+
+    public static ObservableList<Profile> getObservableProfiles() {
+        return profiles;
+    }
+
+    public static ObjectProperty<Profile> currentProfileProperty() {
+        return currentProfile;
+    }
+
+    public static Profile getCurrentProfile() {
+        return currentProfile.get();
+    }
+
+    public static void setCurrentProfile(Profile profile) {
+        currentProfile.set(profile);
+    }
+
+    public static ObservableList<Profile> profilesProperty() {
+        return profiles;
+    }
+
+
 }

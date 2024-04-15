@@ -1,0 +1,13 @@
+* {
+    -root-bg-color: #000000;
+    -button-accent-color: #007acc;
+    -button-accent-color-hover: derive(-button-accent-color, 20%);
+    -button-text-color: #ffffff;
+    -text-color: #ffffff;
+    -secondary-bg-color: #7e53ff;
+    -combo-box-accent-color: #007acc;
+    -tab-selected-accent-color: #007acc;
+    -slider-accent-color: #007acc;
+    -profile-selected-secondary-bg-color: #4c4c4c;
+    -image-effect-color: #333333;
+}
