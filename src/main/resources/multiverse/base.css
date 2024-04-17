@@ -12,16 +12,12 @@
 .text-area {
     -fx-text-fill: -text-color;
     -fx-background-insets: 0;
-    -fx-background-color: -root-bg-color;
+    -fx-background-color: transparent;
 }
 
 .text-area .content {
-    -fx-background-color: -root-bg-color;
+    -fx-background-color: transparent;
     -fx-cursor: pointer;
-}
-
-.text-area:focused .content {
-    -fx-background-color: -root-bg-color;
 }
 
 #consoleTextArea {
@@ -96,9 +92,8 @@
     -fx-text-fill: -button-text-color;
 }
 
-.tab-pane
-{
-    -fx-tab-min-width:99px;
+.tab-pane {
+    -fx-tab-min-width:98px;
 }
 
 .tab:selected .focus-indicator {
@@ -165,6 +160,15 @@
 }
 
 .check-box:selected .box {
-
     -fx-background-color: -button-accent-color;
+}
+
+.mod-entry {
+    -fx-background-color: -secondary-bg-color;
+    -fx-background-radius: 10;
+}
+
+.mod-entry > .combo-box, .mod-entry > .combo-box > .list-cell {
+    -fx-text-fill: -text-color;
+    -fx-background-color: -root-bg-color;
 }

@@ -10,7 +10,7 @@ import multiverse.cr_downloader.downloaders.ItchIoDownloader;
 import multiverse.cr_downloader.downloaders.LocalDownloader;
 import multiverse.cr_downloader.exceptions.CRDownloaderException;
 import multiverse.managers.SettingsManager;
-import multiverse.utils.ListSorter;
+import multiverse.utils.VersionComparator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class DownloadManager {
             } catch (CRDownloaderException e) {
                 error = true;
             }
-        versions.sort(ListSorter::compare);
+        versions.sort(VersionComparator::compare);
         if (error) throw new CRDownloaderException("Some versions could not be loaded");
     }
 

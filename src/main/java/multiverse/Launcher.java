@@ -7,18 +7,17 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import multiverse.cr_downloader.DownloadManager;
@@ -56,6 +55,7 @@ public class Launcher implements Initializable {
     public FlowPane profilePane;
     public BorderPane borderPane;
     public Button updateButton;
+    public VBox modEntries;
     private int lineCounter;
 
     private static String getChangeLog() {
@@ -95,12 +95,96 @@ public class Launcher implements Initializable {
                     if (newValue) Updater.checkForUpdates(updateButton);
                     else updateButton.setVisible(false);
                 }));
+                //Platform.runLater(this::addMod);
                 String changelog = getChangeLog();
                 Platform.runLater(() -> changelogTextArea.setText(String.join("\n\n", GSON.fromJson(changelog, String[].class))));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }).start();
+    }
+
+    public void addMod(){
+        for (int i = 0; i < 10; i++) {
+            // Create HBox for each mod entry
+            HBox modEntry = new HBox();
+            modEntry.setAlignment(Pos.CENTER);
+            modEntry.setSpacing(10);
+            modEntry.setPrefHeight(150);
+
+            // Add image
+            ImageView imageView = cropTo16x9(new Image(MultiverseLauncher.class.getResourceAsStream("img.png"))); // Replace "yourImage.png" with actual image path
+            imageView.setFitHeight(130);
+            imageView.setPreserveRatio(true);
+
+            HBox.setMargin(imageView, new Insets(0, 0, 0, 10));
+            modEntry.getChildren().add(roundedNode(imageView));
+
+            // Add description ScrollPane
+            TextArea descriptionTextArea = new TextArea("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.   \n" +
+                                                        "\n" +
+                                                        "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.");
+            descriptionTextArea.setWrapText(true);
+            descriptionTextArea.setMaxHeight(130);
+            descriptionTextArea.setEditable(false);
+            HBox.setHgrow(descriptionTextArea, Priority.ALWAYS);
+            modEntry.getChildren().add(descriptionTextArea);
+
+            // Add version selector
+            ComboBox<String> versionComboBox = new ComboBox<>();
+            versionComboBox.getItems().addAll("Version 1", "Version 2", "Version 3"); // Add your version options here
+            versionComboBox.setValue("Select Version");
+            modEntry.getChildren().add(versionComboBox);
+
+            // Add install button
+            Button installButton = new Button("Install");
+            HBox.setMargin(installButton, new Insets(0, 10, 0, 0));
+            modEntry.getChildren().add(installButton);
+
+            modEntry.getStyleClass().add("mod-entry");
+
+            modEntries.getChildren().add(modEntry);
+        }
+    }
+
+    private Node roundedNode(Node inputNode) {
+        final Rectangle clip = new Rectangle();
+        clip.setArcWidth(20);
+        clip.setArcHeight(20);
+        clip.setWidth(inputNode.getLayoutBounds().getWidth());
+        clip.setHeight(inputNode.getLayoutBounds().getHeight());
+        inputNode.setClip(clip);
+
+        return inputNode;
+    }
+
+    public static ImageView cropTo16x9(Image image) {
+        double imageWidth = image.getWidth();
+        double imageHeight = image.getHeight();
+
+        double targetWidth;
+        double targetHeight;
+        double targetX;
+        double targetY;
+
+        // Calculate the dimensions and position for the cropped image
+        if ((double)16/9 * imageHeight <= imageWidth) {
+            targetHeight = imageHeight;
+            targetWidth = (double)16/9 * imageHeight;
+            targetX = (imageWidth - targetWidth) / 2;
+            targetY = 0;
+        } else {
+            targetWidth = imageWidth;
+            targetHeight = (double)9/16 * imageWidth;
+            targetX = 0;
+            targetY = (imageHeight - targetHeight) / 2;
+        }
+
+        // Create a new ImageView with the cropped image
+        ImageView imageView = new ImageView(image);
+        imageView.setViewport(new Rectangle2D(targetX, targetY, targetWidth, targetHeight));
+
+        return imageView;
     }
 
     @FXML
@@ -289,6 +373,7 @@ public class Launcher implements Initializable {
         profileImage.setPreserveRatio(true);
         profileImage.setFitHeight(100);
         profileImage.setFitWidth(100);
+        roundedNode(profileImage);
 
         StackPane imagePane = new StackPane();
         imagePane.setMinSize(100, 100);

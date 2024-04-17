@@ -32,10 +32,16 @@
                     </Tab>
                     <!--<Tab text="Mods">
                         <AnchorPane>
+                            <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <VBox fx:id="modEntries" spacing="10.0">
+                           <padding>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </padding></VBox>
+                            </ScrollPane>
                         </AnchorPane>
                     </Tab>-->
                 </TabPane>
-            <Button fx:id="updateButton" mnemonicParsing="false" text="Update" StackPane.alignment="TOP_RIGHT" visible="false">
+            <Button fx:id="updateButton" mnemonicParsing="false" text="Update" visible="false" StackPane.alignment="TOP_RIGHT">
                <StackPane.margin>
                   <Insets right="5.0" top="5.0" />
                </StackPane.margin></Button>

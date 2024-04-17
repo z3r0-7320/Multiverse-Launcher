@@ -183,15 +183,16 @@ public class AddProfil implements Initializable {
             } catch (CRDownloaderException e) {
                 error = showError(e.getMessage());
             }
-            boolean b;
             if (!error && quilt) {
-                b = QuiltManager.downloadRelease(quiltRelease, d -> Platform.runLater(() -> progressBar.setProgress(d)));
-                if (!b) {
-                    showError("Failed to download quilt");
+                try {
+                    QuiltManager.downloadRelease(quiltRelease, d -> Platform.runLater(() -> progressBar.setProgress(d)));
+                } catch (CRDownloaderException e) {
+                    error = showError(e.getMessage());
                     DirectoryDeleter.deleteDir(new File(Statics.QUILT_DIRECTORY, quiltRelease.getVersionNumber()));
                 }
             }
-            if (isEdit) {
+            if (error);
+            else if (isEdit) {
                 if ((!profileName.equals(profile.getName()) ||
                      (!version.getVersion().equals(profile.getVersion())) ||
                      (!quiltRelease.equals(QuiltRelease.unknown) && !quiltRelease.getVersionNumber().equals(profile.getQuiltLoaderVersion())) ||
