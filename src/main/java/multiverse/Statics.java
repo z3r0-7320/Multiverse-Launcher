@@ -31,6 +31,7 @@ public class Statics {
             "https://maven.quiltmc.org/repository/release/",
             "https://maven.fabricmc.net/",
             "https://repo.spongepowered.org/maven/",
+            "https://jitpack.io/",
     };
 
     public static final String[] DARK_MODE = {
