@@ -19,7 +19,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class QuiltManager {
@@ -59,15 +62,20 @@ public class QuiltManager {
 
     public static void downloadRelease(QuiltRelease release, Consumer<Double> consumer) throws CRDownloaderException {
         if (release.isLocal()) return;
-        if (!Downloader.downloadFile(Statics.QUILT_LOADER_DOWNLOAD.formatted(release.getVersionNumber(), "cosmic-quilt-%s.jar".formatted(release.getVersionNumber())),
-                new File(Statics.QUILT_DIRECTORY, release.getVersionNumber()), Statics.QUILT_LOADER_JAR_NAME, consumer))
-            throw new CRDownloaderException("Failed to download Quilt Loader");
-        String pom = Downloader.downloadAsString(Statics.QUILT_LOADER_DOWNLOAD.formatted(release.getVersionNumber(), "cosmic-quilt-%s.pom".formatted(release.getVersionNumber())));
-        if (pom == null) throw new CRDownloaderException("Failed to download dependencies");
-        Map<String, Dependency> dependencies1 = new HashMap<>();
-        getDependencies(dependencies1, pom, null, 0);
-        for (Dependency dependency : dependencies1.values()) {
-            downloadDependencies(release, dependency, Statics.MAVEN_REPOSITORIES, consumer);
+        File file = new File(Statics.QUILT_DIRECTORY, release.getVersionNumber());
+        try {
+            if (!Downloader.downloadFile(Statics.QUILT_LOADER_DOWNLOAD.formatted(release.getVersionNumber(), "cosmic-quilt-%s.jar".formatted(release.getVersionNumber())),
+                    file, Statics.QUILT_LOADER_JAR_NAME, consumer))
+                throw new CRDownloaderException("Failed to download Quilt Loader");
+            String pom = Downloader.downloadAsString(Statics.QUILT_LOADER_DOWNLOAD.formatted(release.getVersionNumber(), "cosmic-quilt-%s.pom".formatted(release.getVersionNumber())));
+            if (pom == null) throw new CRDownloaderException("Failed to download dependencies");
+            Map<String, Dependency> dependencies1 = new HashMap<>();
+            getDependencies(dependencies1, pom, null, 0);
+            for (Dependency dependency : dependencies1.values())
+                downloadDependencies(release, dependency, Statics.MAVEN_REPOSITORIES, consumer);
+        } catch (CRDownloaderException e) {
+            DirectoryDeleter.deleteDir(file);
+            throw e;
         }
     }
 
@@ -85,7 +93,7 @@ public class QuiltManager {
                 if (optionalNode != null && optionalNode.getTextContent().equalsIgnoreCase("true")) continue;
                 if (dependency.getElementsByTagName("version").item(0) != null) {
                     String version = dependency.getElementsByTagName("version").item(0).getTextContent();
-                    if (version.equals( "${project.version}")){ // replace with parent version
+                    if (version.equals("${project.version}")) { // replace with parent version
                         NodeList parentList = document.getElementsByTagName("parent");
                         if (parentList != null && parentList.getLength() > 0) {
                             Element parent = (Element) parentList.item(0);
@@ -119,7 +127,6 @@ public class QuiltManager {
                         }
 
                     }
-                    // add your code here
                 }
             }
 
@@ -146,12 +153,12 @@ public class QuiltManager {
         if (!downloaded) System.out.println("Failed to download dependency: " + artifactId + "-" + version);
     }
 
-    private static class Dependency{
+    private static class Dependency {
         private final String groupId;
         private final String artifactId;
         private final String version;
 
-        public Dependency(String groupId, String artifactId, String version){
+        public Dependency(String groupId, String artifactId, String version) {
             this.groupId = groupId;
             this.artifactId = artifactId;
             this.version = version;

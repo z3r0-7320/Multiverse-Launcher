@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="400.0" prefWidth="400" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="multiverse.Settings">
+<BorderPane prefHeight="576.0" prefWidth="400" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="multiverse.Settings">
 
     <HBox alignment="CENTER" spacing="10" />
     <bottom>
@@ -29,32 +29,34 @@
                 <Button mnemonicParsing="false" onAction="#manageCQ" text="Cosmic Quilt" />
                 <Button mnemonicParsing="false" onAction="#manageIcons" text="Icons" />
             </HBox>
-         <Button mnemonicParsing="false" onAction="#extractIcons" text="Extract Icons">
-            <VBox.margin>
-               <Insets top="5.0" />
-            </VBox.margin>
-         </Button>
+            <Button mnemonicParsing="false" onAction="#extractIcons" text="Extract Icons">
+                <VBox.margin>
+                    <Insets top="5.0" />
+                </VBox.margin>
+            </Button>
             <Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" text="Theme" />
             <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="10.0">
                 <Button mnemonicParsing="false" onAction="#setDarkTheme" text="Dark" />
                 <Button mnemonicParsing="false" onAction="#setLightTheme" text="Light" />
                 <!--<Button mnemonicParsing="false" onAction="#setHighContrast" text="High Contrast" />-->
             </HBox>
-         <Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" layoutX="10.0" layoutY="245.0" text="Game File Sources" />
+            <Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" layoutX="10.0" layoutY="245.0" text="Game File Sources" />
             <HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="263.0" prefHeight="40.0" spacing="10.0">
                 <CheckBox fx:id="useGitHubVersions" mnemonicParsing="false" text="GitHub" />
                 <CheckBox fx:id="useItchIoVersions" mnemonicParsing="false" text="Itch.io" />
             </HBox>
-         <CheckBox fx:id="showExperimentalVersions" mnemonicParsing="false" text="Show Experimental Versions">
-            <padding>
-               <Insets top="10.0" />
-            </padding>
-         </CheckBox>
-         <CheckBox fx:id="checkForUpdates" mnemonicParsing="false" text="Check for Updates">
-            <padding>
-               <Insets top="10.0" />
-            </padding>
-         </CheckBox>
+            <CheckBox fx:id="showExperimentalVersions" mnemonicParsing="false" text="Show Experimental Versions">
+                <padding>
+                    <Insets top="10.0" />
+                </padding>
+            </CheckBox>
+            <CheckBox fx:id="checkForUpdates" mnemonicParsing="false" text="Check for Updates">
+                <padding>
+                    <Insets top="10.0" />
+                </padding>
+            </CheckBox>
+            <Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" layoutX="10.0" layoutY="278.0" text="Mod Repositories" />
+            <TextArea fx:id="modRepos" prefWidth="350.0" style="-fx-background-color: -secondary-bg-color;" VBox.vgrow="ALWAYS" />
             <Label fx:id="errorField" textFill="#ed4337" />
             <BorderPane.margin>
                 <Insets left="25.0" right="25.0" />

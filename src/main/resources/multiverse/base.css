@@ -96,6 +96,10 @@
     -fx-tab-min-width:98px;
 }
 
+.tab-header-area {
+    -fx-padding: 10 10 0 10;
+}
+
 .tab:selected .focus-indicator {
     -fx-border-width: 0;
 }
@@ -168,7 +172,19 @@
     -fx-background-radius: 10;
 }
 
-.mod-entry > .combo-box, .mod-entry > .combo-box > .list-cell {
+.mod-version-combobox, .mod-version-combobox > .list-cell {
     -fx-text-fill: -text-color;
     -fx-background-color: -root-bg-color;
+}
+
+#reload {
+    -fx-background-color: transparent;
+}
+
+#reload SVGPath {
+    -fx-fill: -text-color;
+}
+
+#reload:hover SVGPath {
+    -fx-fill: -button-accent-color;
 }

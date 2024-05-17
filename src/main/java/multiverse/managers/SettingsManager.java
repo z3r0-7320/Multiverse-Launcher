@@ -7,6 +7,9 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import multiverse.Statics;
+import multiverse.cr_downloader.exceptions.CRDownloaderException;
+import multiverse.crm1.CRM1;
+import multiverse.crm1.ModView;
 import multiverse.json.Profile;
 import multiverse.json.Settings;
 
@@ -34,7 +37,8 @@ public class SettingsManager {
                     true,
                     true,
                     false,
-                    true
+                    true,
+                    new String[0]
             );
         } else {
             try {
@@ -67,6 +71,9 @@ public class SettingsManager {
                 }
                 if (object.get("checkForUpdates") == null) {
                     SETTINGS.setCheckForUpdates(true);
+                }
+                if (SETTINGS.getModRepos() == null) {
+                    SETTINGS.setModRepos(new String[0]);
                 }
                 checkForUpdates.set(SETTINGS.checkForUpdates());
             } catch (IOException e) {
@@ -204,5 +211,23 @@ public class SettingsManager {
 
     public static void addUpdateListener(ChangeListener<Boolean> listener) {
         checkForUpdates.addListener(listener);
+    }
+
+    public static String[] getModRepos() {
+        return SETTINGS.getModRepos();
+    }
+
+    public static boolean updateModRepos(String[] split) {
+        if (split == null || Arrays.equals(split, SETTINGS.getModRepos())) return false;
+        try {
+            SETTINGS.setModRepos(split);
+            Files.write(FILE.toPath(), GSON.toJson(SETTINGS).getBytes());
+            CRM1.update();
+        } catch (IOException e) {
+            return false;
+        } catch (CRDownloaderException ignored) {
+        }
+        ModView.setUpdate(true);
+        return true;
     }
 }

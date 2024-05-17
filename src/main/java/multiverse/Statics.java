@@ -2,13 +2,14 @@ package multiverse;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import multiverse.utils.NullOnFailTypeAdapterFactory;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.function.Supplier;
 
 public class Statics {
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static final Gson GSON = new GsonBuilder().registerTypeAdapterFactory(new NullOnFailTypeAdapterFactory()).create();
 
     public static final File BASE_DIRECTORY = ((Supplier<File>) () -> {
         try {

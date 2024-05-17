@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
 <BorderPane fx:id="borderPane" prefHeight="576.0" prefWidth="1020.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="multiverse.Launcher">
     <center>
@@ -14,7 +15,7 @@
                             <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                 <FlowPane fx:id="profilePane" hgap="10.0" vgap="10" VBox.vgrow="ALWAYS">
                                     <padding>
-                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                        <Insets bottom="10.0" left="13.0" right="13.0" top="10.0" />
                                     </padding>
                                 </FlowPane>
                             </ScrollPane>
@@ -30,21 +31,39 @@
                             <TextArea fx:id="consoleTextArea" editable="false" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                         </AnchorPane>
                     </Tab>
-                    <!--<Tab text="Mods">
+                    <Tab fx:id="modTab" text="Mods">
                         <AnchorPane>
-                            <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <VBox fx:id="modEntries" spacing="10.0">
-                           <padding>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                           </padding></VBox>
+                            <ScrollPane fx:id="mods" fitToHeight="true" fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <VBox spacing="10.0">
+                                    <HBox alignment="CENTER" fillHeight="false" spacing="10.0">
+                                        <TextField fx:id="searchBar" promptText="Search" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="reload" mnemonicParsing="false">
+                                  <graphic>
+                                      <SVGPath content="M 2.859375 13.285156 C 4.144531 14.265625 5.667969 14.785156 7.273438 14.785156 C 7.597656 14.785156 7.925781 14.765625 8.25 14.722656 C 10.179688 14.464844 11.890625 13.472656 13.074219 11.929688 C 13.796875 10.988281 14.28125 9.875 14.476562 8.714844 C 14.507812 8.515625 14.375 8.324219 14.171875 8.289062 L 13.195312 8.125 C 13.101562 8.109375 13 8.132812 12.921875 8.1875 C 12.839844 8.246094 12.785156 8.332031 12.769531 8.429688 C 12.621094 9.3125 12.25 10.160156 11.703125 10.875 C 10.800781 12.054688 9.492188 12.8125 8.019531 13.007812 C 7.773438 13.039062 7.523438 13.058594 7.277344 13.058594 C 6.054688 13.058594 4.890625 12.660156 3.910156 11.910156 C 2.730469 11.007812 1.972656 9.703125 1.777344 8.230469 C 1.582031 6.757812 1.972656 5.296875 2.875 4.121094 C 3.933594 2.734375 5.546875 1.941406 7.296875 1.941406 C 8.523438 1.941406 9.691406 2.335938 10.667969 3.085938 C 10.992188 3.332031 11.28125 3.609375 11.539062 3.914062 L 9.714844 3.589844 C 9.617188 3.574219 9.515625 3.59375 9.4375 3.652344 C 9.355469 3.707031 9.300781 3.792969 9.285156 3.890625 L 9.113281 4.863281 C 9.078125 5.066406 9.210938 5.257812 9.414062 5.292969 L 13.792969 6.066406 C 13.8125 6.070312 13.835938 6.070312 13.855469 6.070312 C 13.933594 6.070312 14.007812 6.046875 14.070312 6.003906 C 14.148438 5.949219 14.203125 5.863281 14.222656 5.765625 L 14.992188 1.386719 C 15.03125 1.183594 14.894531 0.992188 14.695312 0.957031 L 13.71875 0.785156 C 13.519531 0.75 13.328125 0.882812 13.292969 1.085938 L 12.964844 2.929688 C 12.601562 2.476562 12.183594 2.066406 11.71875 1.710938 C 10.4375 0.730469 8.910156 0.214844 7.296875 0.214844 C 5.003906 0.214844 2.890625 1.253906 1.503906 3.066406 C 0.320312 4.613281 -0.191406 6.527344 0.0664062 8.457031 C 0.320312 10.386719 1.3125 12.101562 2.859375 13.285156 Z M 2.859375 13.285156 " fill="WHITE" />
+                                  </graphic>
+                              </Button>
+                              <CheckBox fx:id="modLoader" mnemonicParsing="false" selected="true" text="Quilt/Fabric" />
+                              <CheckBox fx:id="vanilla" mnemonicParsing="false" selected="true" text="Data" />
+                              <VBox.margin>
+                                 <Insets left="10.0" right="10.0" top="10.0" />
+                              </VBox.margin>
+                                    </HBox>
+                                    <VBox fx:id="modEntries" alignment="TOP_CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
+                                        <padding>
+                                            <Insets left="10.0" right="10.0" />
+                                        </padding>
+                                    </VBox>
+                                    <HBox fx:id="navigationButtons" alignment="BOTTOM_CENTER" spacing="10.0" />
+                                </VBox>
                             </ScrollPane>
                         </AnchorPane>
-                    </Tab>-->
+                    </Tab>
                 </TabPane>
-            <Button fx:id="updateButton" mnemonicParsing="false" text="Update" visible="false" StackPane.alignment="TOP_RIGHT">
-               <StackPane.margin>
-                  <Insets right="5.0" top="5.0" />
-               </StackPane.margin></Button>
+                <Button fx:id="updateButton" mnemonicParsing="false" text="Update" visible="false" StackPane.alignment="TOP_RIGHT">
+                    <StackPane.margin>
+                        <Insets right="5.0" top="5.0" />
+                    </StackPane.margin>
+                </Button>
             </StackPane>
         </VBox>
     </center>

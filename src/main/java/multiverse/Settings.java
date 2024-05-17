@@ -35,6 +35,7 @@ public class Settings implements Initializable {
     public CheckBox useItchIoVersions;
     public CheckBox showExperimentalVersions;
     public CheckBox checkForUpdates;
+    public TextArea modRepos;
     String[] themes = null;
 
     public void handleSave(ActionEvent actionEvent) {
@@ -46,6 +47,7 @@ public class Settings implements Initializable {
         SettingsManager.updateUseItchIoVersions(useItchIoVersions.isSelected());
         SettingsManager.updateShowExperimentalVersions(showExperimentalVersions.isSelected());
         SettingsManager.updateCheckForUpdates(checkForUpdates.isSelected());
+        SettingsManager.updateModRepos(modRepos.getText().split("\n"));
         Platform.runLater(() -> {
             Stage stage = (Stage) saveButton.getScene().getWindow();
             stage.close();
@@ -85,7 +87,7 @@ public class Settings implements Initializable {
                 minRamSlider.setValue(newValue.intValue());
             }
         });
-
+        modRepos.setText(String.join("\n", SettingsManager.getModRepos()));
     }
 
     public void manageCR(ActionEvent actionEvent) {

@@ -39,7 +39,7 @@ public class ProfileManager {
     }
 
     private static boolean updateCurrentProfile(Profile profile, boolean force) {
-        if (profile == null || !force && (Objects.equals(currentProfile.get(), profile) || !SettingsManager.updateLastProfile(profile)))
+        if (profile == null && !profiles.isEmpty() || !force && (Objects.equals(currentProfile.get(), profile) || !SettingsManager.updateLastProfile(profile)))
             return false;
         currentProfile.set(profile);
         return true;
