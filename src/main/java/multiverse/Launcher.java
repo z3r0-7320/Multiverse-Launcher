@@ -254,6 +254,7 @@ public class Launcher implements Initializable {
     }
 
     public void onProfileDeleteButtonClick(ActionEvent actionEvent) throws IOException {
+        if (profileComboBox.getValue() == null) return;
         disableUI(true);
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
         Stage popupStage = new Stage();
@@ -278,6 +279,7 @@ public class Launcher implements Initializable {
     }
 
     public void onProfileEditButtonClick(ActionEvent actionEvent) throws IOException {
+        if (profileComboBox.getValue() == null) return;
         disableUI(true);
         ProgramState.updateStatus(ProgramState.ProgramStateEnum.EDIT_PROFILE);
         Stage popupStage = createPopupStage("Edit Profile", "add_profil.fxml");
