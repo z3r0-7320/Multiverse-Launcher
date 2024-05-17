@@ -6,7 +6,6 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import multiverse.utils.ThemeSwitcher;
-import multiverse.utils.VersionComparator;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,5 +32,6 @@ public class MultiverseLauncher extends Application {
         stage.show();
         stage.setMinHeight(scene.getHeight());
         stage.setMinWidth(scene.getWidth());
+        stage.setOnCloseRequest(event -> System.exit(0));
     }
 }

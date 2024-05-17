@@ -15,7 +15,6 @@ import multiverse.json.Profile;
 import multiverse.json.QuiltRelease;
 import multiverse.managers.ProfileManager;
 import multiverse.managers.SettingsManager;
-import multiverse.utils.DirectoryDeleter;
 import multiverse.utils.QuiltManager;
 
 import java.io.File;
@@ -188,10 +187,9 @@ public class AddProfil implements Initializable {
                     QuiltManager.downloadRelease(quiltRelease, d -> Platform.runLater(() -> progressBar.setProgress(d)));
                 } catch (CRDownloaderException e) {
                     error = showError(e.getMessage());
-                    DirectoryDeleter.deleteDir(new File(Statics.QUILT_DIRECTORY, quiltRelease.getVersionNumber()));
                 }
             }
-            if (error);
+            if (error) ;
             else if (isEdit) {
                 if ((!profileName.equals(profile.getName()) ||
                      (!version.getVersion().equals(profile.getVersion())) ||

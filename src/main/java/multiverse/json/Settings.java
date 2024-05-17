@@ -6,8 +6,9 @@ public class Settings {
     private String[] themes;
     private int minRam, maxRam;
     private boolean useGitHubVersions, useItchIoVersions, showExperimentalVersions, checkForUpdates;
+    private String[] modRepos;
 
-    public Settings(String lastProfile, String apiKey, int minRam, int maxRam, String[] themes, boolean useGitHubVersions, boolean useItchIoVersions, boolean showExperimentalVersions, boolean checkForUpdates) {
+    public Settings(String lastProfile, String apiKey, int minRam, int maxRam, String[] themes, boolean useGitHubVersions, boolean useItchIoVersions, boolean showExperimentalVersions, boolean checkForUpdates, String[] modRepos) {
         this.lastProfil = lastProfile;
         this.apiKey = apiKey;
         this.minRam = minRam;
@@ -17,6 +18,7 @@ public class Settings {
         this.useItchIoVersions = useItchIoVersions;
         this.showExperimentalVersions = showExperimentalVersions;
         this.checkForUpdates = checkForUpdates;
+        this.modRepos = modRepos;
     }
 
     public String getLastProfile() {
@@ -89,5 +91,13 @@ public class Settings {
 
     public void setCheckForUpdates(boolean selected) {
         this.checkForUpdates = selected;
+    }
+
+    public String[] getModRepos() {
+        return modRepos;
+    }
+
+    public void setModRepos(String[] modRepos) {
+        this.modRepos = modRepos;
     }
 }
