@@ -73,6 +73,7 @@
 .tab-pane .tab:selected {
     -fx-background-color: -root-bg-color;
 }
+
 .tab-pane .tab {
     -fx-background-color: -secondary-bg-color;
 }
@@ -93,7 +94,7 @@
 }
 
 .tab-pane {
-    -fx-tab-min-width:98px;
+    -fx-tab-min-width: 98px;
 }
 
 .tab-header-area {
@@ -150,7 +151,7 @@
 .check-box .box {
     -fx-background-color: -secondary-bg-color;
     -fx-border-width: 0;
-    -fx-border-radius:3px;
+    -fx-border-radius: 3px;
 
 }
 

@@ -10,16 +10,17 @@ import multiverse.cr_downloader.exceptions.CRDownloaderException;
 import multiverse.cr_downloader.interfaces.CosmicReachDownloader;
 import multiverse.managers.SettingsManager;
 import multiverse.utils.Downloader;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static multiverse.Statics.GSON;
 
@@ -35,30 +36,43 @@ public class ItchIoDownloader implements CosmicReachDownloader {
         }.getType());
     }
 
-    @Override
     public void downloadVersion(CosmicReachVersion version, Consumer<Double> consumer) throws CRDownloaderException {
         if (version instanceof ItchIoVersion itchIoVersion) {
             File downloadFolder = new File(Statics.VERSIONS_DIRECTORY, version.getVersion());
-            File zipFile = new File(downloadFolder, itchIoVersion.getId() + ".zip");
-            if (Downloader.downloadFile(getDownloadUrl(itchIoVersion.getId()), downloadFolder, zipFile.getName(), null, consumer)) {
-                extract(zipFile, downloadFolder.getAbsolutePath());
-                zipFile.delete();
-            } else throw new CRDownloaderException("Failed to download Itch.io build");
-        } else throw new CRDownloaderException("Invalid version type");
+            try {
+                downloadFolder.mkdirs();
+                byte[] fileData = Downloader.downloadFileToByteArray(getDownloadUrl(itchIoVersion.getId()), consumer);
+                extract(fileData, downloadFolder.getAbsolutePath());
+            } catch (IOException e) {
+                throw new CRDownloaderException("Failed to download Itch.io build", e);
+            }
+        } else {
+            throw new CRDownloaderException("Invalid version type");
+        }
     }
 
-    private void extract(File zipFilePath, String outputPath) throws CRDownloaderException {
-        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath))) {
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                if (zipEntry.getName().endsWith(".jar")) {
-                    Files.copy(zis, Paths.get(outputPath, Statics.COSMIC_REACH_JAR_NAME));
-                    break;
+    public void extract(byte[] zipData, String outputPath) throws CRDownloaderException {
+        try {
+            ZipFile.Builder zipFileBuilder = new ZipFile.Builder().setByteArray(zipData);
+            try (ZipFile zipFile = zipFileBuilder.get()) {
+                Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+                boolean jarFound = false;
+                while (entries.hasMoreElements()) {
+                    ZipArchiveEntry entry = entries.nextElement();
+                    if (entry.getName().endsWith(".jar")) {
+                        try (InputStream is = zipFile.getInputStream(entry)) {
+                            Files.copy(is, Paths.get(outputPath, Statics.COSMIC_REACH_JAR_NAME));
+                            jarFound = true;
+                            break;
+                        }
+                    }
                 }
-                zipEntry = zis.getNextEntry();
+                if (!jarFound) {
+                    throw new CRDownloaderException("No .jar file found in the zip archive");
+                }
             }
         } catch (IOException e) {
-            throw new CRDownloaderException("Failed to extract Itch.io build");
+            throw new CRDownloaderException("Failed to extract Itch.io build", e);
         }
     }
 

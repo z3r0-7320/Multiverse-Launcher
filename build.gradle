@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'multiverse'
-version '0.0.8'
+version '0.0.9'
 
 repositories {
     mavenCentral()
@@ -65,6 +65,7 @@ dependencies {
 
     implementation "com.google.code.gson:gson:2.10.1"
     implementation "org.hjson:hjson:3.1.0"
+    implementation 'org.apache.commons:commons-compress:1.26.1'
 }
 
 jar{
