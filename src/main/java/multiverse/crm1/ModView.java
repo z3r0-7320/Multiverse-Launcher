@@ -200,7 +200,7 @@ public class ModView {
                     List<BaseMod> versions = new ArrayList<>();
                     versions.add(mod);
                     if (mod.getExt().getAlt_versions() != null) versions.addAll(mod.getExt().getAlt_versions());
-                    versions.sort(VersionComparator::compare);
+                    //versions.sort(VersionComparator::compare);
                     modEntry.getVersionComboBox().getItems().clear();
                     modEntry.getVersionComboBox().getItems().addAll(versions);
                     modEntry.getVersionComboBox().setValue(mod);
