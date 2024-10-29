@@ -167,6 +167,10 @@ public class Launcher implements Initializable {
                                         "org.quiltmc.loader.impl.launch.knot.KnotClient") :
                                 new ProcessBuilder(Statics.JAVA_EXECUTABLE, "-jar", "-Xms" + SettingsManager.SETTINGS.getMinRam() + "m", "-Xmx" + SettingsManager.SETTINGS.getMaxRam() + "m", launchTarget.getAbsolutePath());
                         processBuilder.directory(new File(Statics.PROFILES_DIRECTORY, profile.getName()));
+                        String apiKey = SettingsManager.getApiKey();
+                        if (apiKey != null && !apiKey.trim().isEmpty()) {
+                            processBuilder.environment().put("ITCHIO_API_KEY", apiKey);
+                        }
                         Process process = processBuilder.start();
                         lineCounter = 0;
                         writeToWindow(process.getInputStream());
